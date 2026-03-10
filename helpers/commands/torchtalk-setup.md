@@ -84,8 +84,8 @@ Store the chosen directory as `$TORCHTALK_DIR`.
 #### 2.2 Clone the Repository
 
 ```bash
-mkdir -p $(dirname $TORCHTALK_DIR)
-git clone https://github.com/adabeyta/torchtalk.git $TORCHTALK_DIR
+mkdir -p "$(dirname "$TORCHTALK_DIR")"
+git clone https://github.com/adabeyta/torchtalk.git "$TORCHTALK_DIR"
 ```
 
 **Handle errors:**
@@ -96,7 +96,7 @@ git clone https://github.com/adabeyta/torchtalk.git $TORCHTALK_DIR
 #### 2.3 Install from Source
 
 ```bash
-cd $TORCHTALK_DIR
+cd "$TORCHTALK_DIR"
 pip install -e .
 ```
 
@@ -159,7 +159,9 @@ Store the PyTorch path as `$PYTORCH_SOURCE`.
 #### 3.3 Validate PyTorch Source
 
 ```bash
-test -d $PYTORCH_SOURCE/torch && echo "valid" || echo "invalid"
+test -d "$PYTORCH_SOURCE/torch" && \
+  test -f "$PYTORCH_SOURCE/aten/src/ATen/native/native_functions.yaml" && \
+  echo "valid" || echo "invalid"
 ```
 
 If invalid:
