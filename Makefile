@@ -4,10 +4,10 @@ CONTAINER_RUNTIME ?= $(shell command -v podman 2>/dev/null || echo docker)
 # claudelint image
 CLAUDELINT_IMAGE = ghcr.io/stbenjam/claudelint:main
 
-# AI helpers image
-IMAGE_NAME ?=ai-helpers
+# Container images
 IMAGE_TAG ?= latest
-FULL_IMAGE_NAME = $(IMAGE_NAME):$(IMAGE_TAG)
+CLAUDE_IMAGE_NAME ?= ai-helpers
+CURSOR_IMAGE_NAME ?= ai-helpers-cursor
 
 .PHONY: help
 help: ## Show this help message
@@ -58,9 +58,17 @@ update: ## Update Claude settings and website data
 	fi
 
 .PHONY: build
-build: ## Build Claude container image using Containerfile
-	@echo "Building Claude container image $(FULL_IMAGE_NAME) with $(CONTAINER_RUNTIME)..."
-	$(CONTAINER_RUNTIME) build -f images/claude/Containerfile -t $(FULL_IMAGE_NAME) .
+build: build-claude build-cursor ## Build all container images
+
+.PHONY: build-claude
+build-claude: ## Build Claude CLI container image
+	@echo "Building Claude container image $(CLAUDE_IMAGE_NAME):$(IMAGE_TAG) with $(CONTAINER_RUNTIME)..."
+	$(CONTAINER_RUNTIME) build -f images/claude/Containerfile -t $(CLAUDE_IMAGE_NAME):$(IMAGE_TAG) .
+
+.PHONY: build-cursor
+build-cursor: ## Build Cursor CLI container image
+	@echo "Building Cursor container image $(CURSOR_IMAGE_NAME):$(IMAGE_TAG) with $(CONTAINER_RUNTIME)..."
+	$(CONTAINER_RUNTIME) build -f images/cursor/Containerfile -t $(CURSOR_IMAGE_NAME):$(IMAGE_TAG) .
 
 .PHONY: container-build
 container-build: build ## Alias for build target

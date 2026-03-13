@@ -195,6 +195,53 @@ claude-container() {
 }
 ```
 
+### Running Cursor Agent CLI in a Container
+
+A container image is also available with the Cursor Agent CLI and all development tools pre-installed:
+`ghcr.io/opendatahub-io/ai-helpers-cursor:latest`
+
+You can also build it yourself by running:
+
+```bash
+podman build -f images/cursor/Containerfile -t ai-helpers-cursor .
+```
+
+Or using make:
+
+```bash
+make build-cursor
+```
+
+To use the Cursor Agent CLI, you need to pass your `CURSOR_API_KEY`:
+
+```bash
+podman run -it --rm \
+  --pull newer \
+  --userns=keep-id \
+  -e CURSOR_API_KEY=your-api-key \
+  -v $(pwd):$(pwd):z \
+  -w $(pwd) \
+  ghcr.io/opendatahub-io/ai-helpers-cursor:latest
+```
+
+**Environment Variables:**
+
+- `CURSOR_API_KEY` - Your Cursor API key (required for authentication)
+
+Add this to your `~/.bashrc` for easy launching of the container:
+
+```bash
+cursor-container() {
+  podman run -it --rm \
+    --pull newer \
+    --userns=keep-id \
+    -e CURSOR_API_KEY="${CURSOR_API_KEY}" \
+    -v "$(pwd):$(pwd):z" \
+    -w "$(pwd)" \
+    ghcr.io/opendatahub-io/ai-helpers-cursor:latest "$@"
+}
+```
+
 ## Using with OpenCode.ai
 
 [OpenCode.ai](https://opencode.ai) is an open-source AI coding assistant that supports custom skills and commands. Our helpers can be integrated as OpenCode skills and commands to enhance your development workflow.

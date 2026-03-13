@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - 'images/claude/**'
+      - 'images/**'
       - '.github/workflows/build.yml'
   schedule:
     # Run nightly at 2 AM UTC
@@ -17,11 +17,22 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-claude-container:
+  build-container:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - name: claude
+            containerfile: ./images/claude/Containerfile
+            suffix: ""
+          - name: cursor
+            containerfile: ./images/cursor/Containerfile
+            suffix: "-cursor"
 
     steps:
     - name: Checkout code
@@ -42,7 +53,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v6
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ matrix.image.suffix }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -53,7 +64,7 @@ jobs:
       uses: docker/build-push-action@v7
       with:
         context: .
-        file: ./images/claude/Containerfile
+        file: ${{ matrix.image.containerfile }}
         platforms: linux/amd64,linux/arm64
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
