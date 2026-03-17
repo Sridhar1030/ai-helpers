@@ -10,7 +10,8 @@ Export and upload the current chat conversation as a markdown file attachment to
 ## Prerequisites
 
 - Python 3 and `uv` must be installed and available in PATH
-- `JIRA_API_TOKEN` environment variable must be set with a valid API token for https://issues.redhat.com
+- `JIRA_API_TOKEN` environment variable must be set with a valid API token for https://redhat.atlassian.net
+- `JIRA_EMAIL` environment variable must be set with the email address associated with your Atlassian account
 - Appropriate JIRA permissions to add attachments to the target ticket
 
 ## Usage
@@ -33,7 +34,7 @@ Create a document with two main sections: Summary and Full Chat Log. Format the 
 # Chat Log Export - JIRA Ticket: [ticket-key]
 
 **Exported**: [current timestamp]
-**Ticket**: https://issues.redhat.com/browse/[ticket-key]
+**Ticket**: https://redhat.atlassian.net/browse/[ticket-key]
 
 ---
 
@@ -75,15 +76,15 @@ The summary should be human-readable and highlight key points. The full transcri
    ```
 3. The script will:
    - Read the `JIRA_API_TOKEN` environment variable
-   - Connect to https://issues.redhat.com
+   - Connect to https://redhat.atlassian.net
    - Upload the file as an attachment to the specified ticket
    - Return success or error messages
 
 ### Step 5: Confirm and Clean Up
 
 1. If upload succeeds:
-   - Inform the user: "Successfully uploaded chat log to {ticket-key} on https://issues.redhat.com"
-   - Provide the direct link: `https://issues.redhat.com/browse/{ticket-key}`
+   - Inform the user: "Successfully uploaded chat log to {ticket-key} on https://redhat.atlassian.net"
+   - Provide the direct link: `https://redhat.atlassian.net/browse/{ticket-key}`
 2. If upload fails:
    - Display the error message from the script
    - Provide troubleshooting guidance (check token, permissions, ticket exists)
