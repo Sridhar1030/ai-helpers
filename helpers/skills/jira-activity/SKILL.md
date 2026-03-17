@@ -12,7 +12,8 @@ Analyze a Jira ticket and its child tickets to produce a staleness report. Usefu
 ## Prerequisites
 
 - Python 3 and `uv` must be installed and available in PATH
-- `JIRA_API_TOKEN` environment variable must be set with a valid API token for https://issues.redhat.com
+- `JIRA_API_TOKEN` environment variable must be set with a valid API token for https://redhat.atlassian.net
+- `JIRA_EMAIL` environment variable must be set with the email address associated with your Atlassian account
 - Appropriate JIRA permissions to read the target ticket and its children
 
 ## Usage

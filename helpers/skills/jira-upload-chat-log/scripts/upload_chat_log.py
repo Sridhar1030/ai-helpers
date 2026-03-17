@@ -8,10 +8,11 @@
 Upload a chat log file as an attachment to a JIRA ticket.
 
 This script uploads a markdown file (or any file) as an attachment to a
-specified JIRA ticket on https://issues.redhat.com.
+specified JIRA ticket on https://redhat.atlassian.net.
 
 Authentication:
   JIRA_API_TOKEN environment variable must be set with a valid API token
+  JIRA_EMAIL environment variable must be set with your Atlassian account email
 
 Usage:
   upload_chat_log.py <ticket-key> <file-path>
@@ -29,8 +30,8 @@ from pathlib import Path
 from jira import JIRA
 
 
-def get_jira_token() -> str:
-    """Get JIRA API token from environment variable."""
+def get_jira_credentials() -> tuple[str, str]:
+    """Get JIRA API token and email from environment variables."""
     token = os.environ.get("JIRA_API_TOKEN")
     if not token:
         print(
@@ -42,23 +43,34 @@ def get_jira_token() -> str:
             file=sys.stderr,
         )
         print(
-            "1. Go to https://issues.redhat.com",
+            "1. Go to https://id.atlassian.com/manage-profile/security/api-tokens",
             file=sys.stderr,
         )
         print(
-            "2. Click your profile icon > Account Settings > Security",
+            "2. Create and copy an API token",
             file=sys.stderr,
         )
         print(
-            "3. Create and copy an API token",
-            file=sys.stderr,
-        )
-        print(
-            "4. Set the environment variable: export JIRA_API_TOKEN='your-token'",
+            "3. Set the environment variable: export JIRA_API_TOKEN='your-token'",
             file=sys.stderr,
         )
         sys.exit(1)
-    return token
+    email = os.environ.get("JIRA_EMAIL")
+    if not email:
+        print(
+            "ERROR: JIRA_EMAIL environment variable is not set.",
+            file=sys.stderr,
+        )
+        print(
+            "\nSet it to the email address associated with your Atlassian account:",
+            file=sys.stderr,
+        )
+        print(
+            "  export JIRA_EMAIL='your-email@redhat.com'",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return email, token
 
 
 def validate_file(file_path: str) -> Path:
@@ -78,12 +90,12 @@ def validate_file(file_path: str) -> Path:
 
 def upload_attachment(ticket_key: str, file_path: Path) -> None:
     """Upload a file as an attachment to a JIRA ticket."""
-    jira_url = "https://issues.redhat.com"
-    token = get_jira_token()
+    jira_url = "https://redhat.atlassian.net"
+    email, token = get_jira_credentials()
 
     try:
-        # Connect to JIRA using API token
-        jira = JIRA(server=jira_url, token_auth=token)
+        # Connect to JIRA using basic auth (email + API token)
+        jira = JIRA(server=jira_url, basic_auth=(email, token))
 
         # Verify the ticket exists and is accessible
         try:

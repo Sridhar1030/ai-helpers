@@ -15,6 +15,7 @@ noisy changelog fields. Outputs flat JSON hierarchy to stdout.
 
 Authentication:
   JIRA_API_TOKEN environment variable must be set with a valid API token
+  JIRA_EMAIL environment variable must be set with your Atlassian account email
 
 Usage:
   fetch_jira_activity.py <ticket-key> [--days N]
@@ -33,7 +34,7 @@ from datetime import datetime, timedelta, timezone
 from jira import JIRA
 from jira.exceptions import JIRAError
 
-JIRA_URL = "https://issues.redhat.com"
+JIRA_URL = "https://redhat.atlassian.net"
 
 BOT_PATTERNS = ["[bot]", "automation", "jira-bot", "serviceaccount", "addon_"]
 
@@ -49,7 +50,14 @@ def get_jira_client() -> JIRA:
             file=sys.stderr,
         )
         sys.exit(1)
-    return JIRA(server=JIRA_URL, token_auth=token)
+    email = os.environ.get("JIRA_EMAIL")
+    if not email:
+        print(
+            "ERROR: JIRA_EMAIL environment variable is not set.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return JIRA(server=JIRA_URL, basic_auth=(email, token))
 
 
 def is_bot(display_name: str) -> bool:
