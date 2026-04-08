@@ -175,6 +175,14 @@ You can execute Claude Code commands directly without entering an interactive se
 - `-v $(pwd):$(pwd):z` - Mounts the project at the same absolute path as on the host to reuse Claude's session data
 - `-w $(pwd)` - Sets the working directory to match the host path
 
+**CLI Authentication (GitHub and GitLab):**
+
+The container includes `gh` (GitHub CLI) and `glab` (GitLab CLI). To authenticate them inside the container, pass your
+host credentials via environment variables or volume mounts:
+
+- `-e GH_TOKEN=$(gh auth token)` - Pass your GitHub token from the host keyring
+- `-v ~/.config/glab-cli:/home/claude/.config/glab-cli:ro,z` - Mount your GitLab CLI config (contains auth token)
+
 Add this to your `~/.bashrc` for easy launching of the container:
 
 ```bash
