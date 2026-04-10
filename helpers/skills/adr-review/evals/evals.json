@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Review the ADR at evals/fixtures/adr-0001-event-bus.md using the reviewer panel. Produce the PDF and PPTX reports.",
-      "expected_output": "A reviews/ directory next to the ADR containing adr-0001-event-bus-review.pdf and adr-0001-event-bus-review.pptx. The review should flag this ADR as thin — missing alternatives, no ops/security/cost discussion, vague context. Overall recommendation should be 'Needs revision'.",
+      "expected_output": "A adr-review/ directory next to the ADR containing adr-0001-event-bus-review.pdf and adr-0001-event-bus-review.pptx. The review should flag this ADR as thin — missing alternatives, no ops/security/cost discussion, vague context. Overall recommendation should be 'Needs revision'.",
       "files": ["evals/fixtures/adr-0001-event-bus.md"]
     },
     {

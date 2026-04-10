@@ -95,10 +95,10 @@ Once all six reviewers return, synthesize their findings into an overall report.
 
 ### Step 5 — Generate PDF and PPTX reports
 
-Create a `reviews/` subdirectory next to the input ADR file. Write outputs there:
+Create a `adr-review/` subdirectory next to the input ADR file. Write outputs there:
 
-- `reviews/<adr-name>-review.pdf`
-- `reviews/<adr-name>-review.pptx`
+- `adr-review/<adr-name>-review.pdf`
+- `adr-review/<adr-name>-review.pptx`
 
 **PDF structure** — use the `document-skills:pdf` skill (or `reportlab` directly if the skill isn't available):
 
