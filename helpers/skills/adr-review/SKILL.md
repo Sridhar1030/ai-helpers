@@ -117,7 +117,6 @@ Create a `adr-review/` subdirectory next to the input ADR file. Write outputs th
 2. Executive summary — 3-5 bullets, top risks, overall recommendation
 3. One section per reviewer with their full finding. Each concern must include the verbose _What / So what / Suggested fix_ detail so a reader can understand consequences and act on the finding without external context.
 4. Synthesis section — agreements, tensions, gaps
-5. Appendix — the original ADR text
 
 The PDF is the detailed, self-contained artifact. Err on the side of too much context per concern rather than too little — the reader may not have been in the review conversation.
 

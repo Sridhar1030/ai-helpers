@@ -33,9 +33,6 @@
   Gaps (dimensions the ADR didn't address):
   Top risks (consolidated):
   Overall recommendation with rationale:
-
-[APPENDIX]
-  Original ADR text
 ```
 
 ## PPTX Template
