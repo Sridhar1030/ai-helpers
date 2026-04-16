@@ -48,9 +48,9 @@ DOWNSTREAM_REPO=$(git -C "$DOWNSTREAM" remote get-url origin \
   | sed -E 's|.*github.com[:/](.*)\.git$|\1|; s|.*github.com[:/](.*)$|\1|')
 
 # Select candidates: ai-fixable, score >= 50, not already backported
-SELECTED=$(python3 -c "
+SELECTED=$(python3 - "$INPUT" << 'PYEOF'
 import json, sys
-with open('$INPUT') as f:
+with open(sys.argv[1]) as f:
     prs = json.load(f)
 candidates = [p for p in prs
     if p.get('backport_ease') == 'ai-fixable'
@@ -58,7 +58,8 @@ candidates = [p for p in prs
     and not p.get('already_backported')
     and p.get('verdict') in ('must_backport', 'likely_relevant')]
 json.dump(candidates, sys.stdout)
-")
+PYEOF
+)
 
 COUNT=$(echo "$SELECTED" | python3 -c "import json,sys; print(len(json.load(sys.stdin)))")
 
@@ -73,6 +74,9 @@ fi
 cd "$DOWNSTREAM"
 git fetch origin "$BRANCH"
 git checkout -b "$BRANCH_NAME" "origin/$BRANCH"
+
+CHERRY_ERR=$(mktemp)
+trap 'rm -f -- "$CHERRY_ERR"' EXIT
 
 RESULTS="[]"
 SUCCEEDED=0
@@ -91,24 +95,24 @@ for pr in json.load(sys.stdin):
 
   MERGE_SHA=$(gh pr view "$PR_NUM" --repo "$UPSTREAM_REPO" --json mergeCommit --jq '.mergeCommit.oid')
 
-  if git cherry-pick "$MERGE_SHA" --no-commit 2>/tmp/cherry-pick-err.txt; then
+  if git cherry-pick "$MERGE_SHA" --no-commit 2>"$CHERRY_ERR"; then
     git add -A
     SUCCEEDED=$((SUCCEEDED + 1))
-    RESULTS=$(echo "$RESULTS" | python3 -c "
-import json, sys
+    RESULTS=$(echo "$RESULTS" | PR_TITLE="$PR_TITLE" python3 -c "
+import json, sys, os
 r = json.load(sys.stdin)
-r.append({'number': $PR_NUM, 'title': '''$PR_TITLE''', 'score': $PR_SCORE, 'status': 'success'})
+r.append({'number': $PR_NUM, 'title': os.environ['PR_TITLE'], 'score': $PR_SCORE, 'status': 'success'})
 json.dump(r, sys.stdout)
 ")
     >&2 echo "    ✅ Clean"
   else
     git cherry-pick --abort 2>/dev/null || true
-    CONFLICTS=$(cat /tmp/cherry-pick-err.txt 2>/dev/null | head -5 || echo "unknown")
+    CONFLICTS=$(cat "$CHERRY_ERR" 2>/dev/null | head -5 || echo "unknown")
     FAILED=$((FAILED + 1))
-    RESULTS=$(echo "$RESULTS" | python3 -c "
-import json, sys
+    RESULTS=$(echo "$RESULTS" | PR_TITLE="$PR_TITLE" python3 -c "
+import json, sys, os
 r = json.load(sys.stdin)
-r.append({'number': $PR_NUM, 'title': '''$PR_TITLE''', 'score': $PR_SCORE, 'status': 'conflict'})
+r.append({'number': $PR_NUM, 'title': os.environ['PR_TITLE'], 'score': $PR_SCORE, 'status': 'conflict'})
 json.dump(r, sys.stdout)
 ")
     >&2 echo "    ❌ Conflict"

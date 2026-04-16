@@ -37,7 +37,7 @@ if [[ -z "$INPUT" || -z "$DOWNSTREAM" || -z "$BRANCH" || -z "$OUTPUT" ]]; then
 fi
 
 WORK=$(mktemp -d)
-trap "rm -rf $WORK" EXIT
+trap 'rm -rf -- "$WORK"' EXIT
 
 >&2 echo "Building backported SHA set from ${DOWNSTREAM} branch ${BRANCH}..."
 

@@ -29,6 +29,11 @@ if [[ -z "$REPORT" || -z "$CANDIDATES" || -z "$VERSION" ]]; then
   exit 1
 fi
 
+if [[ "$VERSION" =~ \.\. || "$VERSION" =~ ^/ || ! "$VERSION" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "Error: VERSION must be alphanumeric (e.g. v0.13.0), got: $VERSION" >&2
+  exit 1
+fi
+
 TIMESTAMP=$(TZ="America/New_York" date +"%Y-%m-%d_%H-%M-%S_EDT")
 REPORT_DIR="reports/${VERSION}/${TIMESTAMP}"
 

@@ -18,7 +18,7 @@ END_DATE=$(date +%Y-%m-%d)
 
 FIELDS="number,title,mergedAt,mergeCommit,labels,author,mergedBy"
 WORK=$(mktemp -d)
-trap "rm -rf $WORK" EXIT
+trap 'rm -rf -- "$WORK"' EXIT
 
 QUERIES=(
   "merged:${START_DATE}..${END_DATE} label:bug"

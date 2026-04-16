@@ -31,7 +31,8 @@ NON_RUNTIME_PATTERNS = [
 ]
 
 BUGFIX_TITLE_PATTERNS = [
-    r"\[Bug\s*[Ff]ix\]", r"\[Bug\]", r"\[Fix\]", r"\[Bigfix\]",
+    r"\[Bug\s*[Ff]ix\]", r"\[Bug\]", r"\[Fix\]",
+    r"\[Bigfix\]",  # intentional: matches common misspelling in vLLM PR titles
 ]
 
 NOT_BUGFIX_TITLE_PATTERNS = [
@@ -137,8 +138,13 @@ def process_pr(pr, repo_path, tag):
         }
 
     files = fetch_files(num)
-    existing = [f for f in files if file_exists_at_tag(repo_path, tag, f)]
-    new_files = [f for f in files if not file_exists_at_tag(repo_path, tag, f)]
+    existing = []
+    new_files = []
+    for f in files:
+        if file_exists_at_tag(repo_path, tag, f):
+            existing.append(f)
+        else:
+            new_files.append(f)
     runtime_existing = [f for f in existing if not is_non_runtime(f)]
     subsystems = detect_subsystems(files)
 
