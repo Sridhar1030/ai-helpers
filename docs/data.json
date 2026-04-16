@@ -213,6 +213,14 @@
         "allowed_tools": "Bash Read Grep Glob"
       },
       {
+        "name": "triage-bug-readiness",
+        "description": "Assess a Jira bug ticket for AI autofix readiness. Produces a structured JSON verdict (ready/needs_info/not_fixable) based on a three-gate rubric. Designed for CI pipeline use with the jira-triage orchestrator.",
+        "category": "general",
+        "file_path": "helpers/skills/triage-bug-readiness/SKILL.md",
+        "id": "triage-bug-readiness",
+        "allowed_tools": "Bash Read Grep Glob Write"
+      },
+      {
         "name": "unit-test-project-conformant",
         "description": "Guides the agent to write unit tests that strictly conform to the project's existing testing structure, patterns, and style by learning from similar tests before writing anything new.",
         "category": "general",
