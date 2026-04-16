@@ -61,9 +61,12 @@ def main():
     with open(args.input) as f:
         prs = json.load(f)
 
-    candidates = [pr for pr in prs
-                  if not pr.get("already_backported")
-                  and pr.get("verdict") not in ("SKIP", "skip", "likely_skip")]
+    candidates = [
+        pr
+        for pr in prs
+        if not pr.get("already_backported")
+        and pr.get("verdict") not in ("SKIP", "skip", "likely_skip")
+    ]
 
     for pr in candidates:
         pr["score"] = compute_score(pr)
@@ -75,11 +78,14 @@ def main():
             else "ai-nonfixable"
         )
 
-    ranked = sorted(candidates, key=lambda r: (
-        -r["score"],
-        -r.get("files_in_release_count", 0),
-        r["change_size"],
-    ))
+    ranked = sorted(
+        candidates,
+        key=lambda r: (
+            -r["score"],
+            -r.get("files_in_release_count", 0),
+            r["change_size"],
+        ),
+    )
 
     for i, pr in enumerate(ranked):
         pr["rank"] = i + 1
@@ -90,10 +96,14 @@ def main():
     bins = {"critical": 0, "high": 0, "medium": 0, "low": 0}
     for pr in ranked:
         s = pr["score"]
-        if s >= 90: bins["critical"] += 1
-        elif s >= 70: bins["high"] += 1
-        elif s >= 50: bins["medium"] += 1
-        else: bins["low"] += 1
+        if s >= 90:
+            bins["critical"] += 1
+        elif s >= 70:
+            bins["high"] += 1
+        elif s >= 50:
+            bins["medium"] += 1
+        else:
+            bins["low"] += 1
 
     print(f"Ranked {len(ranked)} candidates (from {len(prs)} total)", file=sys.stderr)
     print(f"  Critical (>=90): {bins['critical']}", file=sys.stderr)

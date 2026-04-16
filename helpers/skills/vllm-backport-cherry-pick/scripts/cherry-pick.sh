@@ -107,7 +107,6 @@ json.dump(r, sys.stdout)
     >&2 echo "    ✅ Clean"
   else
     git cherry-pick --abort 2>/dev/null || true
-    CONFLICTS=$(cat "$CHERRY_ERR" 2>/dev/null | head -5 || echo "unknown")
     FAILED=$((FAILED + 1))
     RESULTS=$(echo "$RESULTS" | PR_TITLE="$PR_TITLE" python3 -c "
 import json, sys, os
@@ -145,7 +144,7 @@ git push origin "$BRANCH_NAME"
 PR_BODY=$(python3 -c "
 import json, sys
 
-results = json.loads('''$(echo "$RESULTS")''')
+results = json.loads('''$RESULTS''')
 succeeded = [r for r in results if r['status'] == 'success']
 conflicts = [r for r in results if r['status'] == 'conflict']
 

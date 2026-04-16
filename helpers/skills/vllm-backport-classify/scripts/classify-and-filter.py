@@ -24,55 +24,86 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 NON_RUNTIME_PATTERNS = [
-    r"^tests/", r"^\.github/", r"^\.buildkite/", r"^docs/",
-    r"^Dockerfile", r"^docker/", r"^\.pre-commit",
-    r"^CONTRIBUTING", r"^README", r"^LICENSE",
-    r"\.md$", r"^Makefile$", r"^\.gitignore$",
+    r"^tests/",
+    r"^\.github/",
+    r"^\.buildkite/",
+    r"^docs/",
+    r"^Dockerfile",
+    r"^docker/",
+    r"^\.pre-commit",
+    r"^CONTRIBUTING",
+    r"^README",
+    r"^LICENSE",
+    r"\.md$",
+    r"^Makefile$",
+    r"^\.gitignore$",
 ]
 
 BUGFIX_TITLE_PATTERNS = [
-    r"\[Bug\s*[Ff]ix\]", r"\[Bug\]", r"\[Fix\]",
+    r"\[Bug\s*[Ff]ix\]",
+    r"\[Bug\]",
+    r"\[Fix\]",
     r"\[Bigfix\]",  # intentional: matches common misspelling in vLLM PR titles
 ]
 
 NOT_BUGFIX_TITLE_PATTERNS = [
-    r"^\[Feature\]", r"^\[Feat\]", r"^\[Perf\]", r"^\[RFC\]",
-    r"^\[Refactor\]", r"^\[Misc\]", r"^\[Model\]", r"^\[Kernel",
-    r"^\[Core\]", r"^\[Frontend\]", r"^\[Distributed\]",
-    r"^\[CI\]", r"^\[Build\]", r"^\[Docs?\]", r"^\[Mypy\]",
-    r"^\[CI/Build\]", r"^\[CI\]\[Build\]", r"^\[CI\]\[Bugfix\]",
-    r"^\[Docker\]", r"^\[Release\]", r"^\[Test\]",
+    r"^\[Feature\]",
+    r"^\[Feat\]",
+    r"^\[Perf\]",
+    r"^\[RFC\]",
+    r"^\[Refactor\]",
+    r"^\[Misc\]",
+    r"^\[Model\]",
+    r"^\[Kernel",
+    r"^\[Core\]",
+    r"^\[Frontend\]",
+    r"^\[Distributed\]",
+    r"^\[CI\]",
+    r"^\[Build\]",
+    r"^\[Docs?\]",
+    r"^\[Mypy\]",
+    r"^\[CI/Build\]",
+    r"^\[CI\]\[Build\]",
+    r"^\[CI\]\[Bugfix\]",
+    r"^\[Docker\]",
+    r"^\[Release\]",
+    r"^\[Test\]",
 ]
 
 PLATFORM_SKIP_TAGS = ["rocm", "tpu", "cpu", "intel-gpu", "xpu"]
 PLATFORM_TITLE_PATTERNS = [
-    r"\[ROCm\]", r"\[TPU\]", r"\[CPU\]", r"\[XPU\]", r"\[Intel[- ]?GPU\]",
-    r"\bROCm\b", r"\bTPU\b", r"\bXPU\b",
+    r"\[ROCm\]",
+    r"\[TPU\]",
+    r"\[CPU\]",
+    r"\[XPU\]",
+    r"\[Intel[- ]?GPU\]",
+    r"\bROCm\b",
+    r"\bTPU\b",
+    r"\bXPU\b",
 ]
 
 SUBSYSTEM_RULES = [
-    ("attention",     [r"vllm/.*/attention/"]),
-    ("scheduler",     [r"vllm/v1/core/", r"vllm/core/"]),
-    ("engine",        [r"vllm/v1/engine/", r"vllm/engine/"]),
-    ("api/frontend",  [r"vllm/entrypoints/"]),
-    ("models",        [r"vllm/model_executor/models/"]),
-    ("quantization",  [r"vllm/model_executor/layers/quantization/"]),
-    ("sampling",      [r"vllm/v1/sample/", r"vllm/model_executor/layers/sampler"]),
-    ("distributed",   [r"vllm/distributed/"]),
-    ("lora",          [r"vllm/lora/"]),
-    ("spec_decode",   [r"vllm/spec_decode/", r"vllm/v1/spec_decode/"]),
-    ("multimodal",    [r"vllm/multimodal/"]),
-    ("config",        [r"vllm/config"]),
-    ("worker",        [r"vllm/v1/worker/", r"vllm/worker/"]),
-    ("kernels",       [r"vllm/model_executor/layers/", r"csrc/"]),
+    ("attention", [r"vllm/.*/attention/"]),
+    ("scheduler", [r"vllm/v1/core/", r"vllm/core/"]),
+    ("engine", [r"vllm/v1/engine/", r"vllm/engine/"]),
+    ("api/frontend", [r"vllm/entrypoints/"]),
+    ("models", [r"vllm/model_executor/models/"]),
+    ("quantization", [r"vllm/model_executor/layers/quantization/"]),
+    ("sampling", [r"vllm/v1/sample/", r"vllm/model_executor/layers/sampler"]),
+    ("distributed", [r"vllm/distributed/"]),
+    ("lora", [r"vllm/lora/"]),
+    ("spec_decode", [r"vllm/spec_decode/", r"vllm/v1/spec_decode/"]),
+    ("multimodal", [r"vllm/multimodal/"]),
+    ("config", [r"vllm/config"]),
+    ("worker", [r"vllm/v1/worker/", r"vllm/worker/"]),
+    ("kernels", [r"vllm/model_executor/layers/", r"csrc/"]),
 ]
 
 REPO = "vllm-project/vllm"
 
 
 def run(cmd, check=True, cwd=None):
-    r = subprocess.run(cmd, capture_output=True, text=True, check=check,
-                       timeout=120, cwd=cwd)
+    r = subprocess.run(cmd, capture_output=True, text=True, check=check, timeout=120, cwd=cwd)
     return r.stdout.strip()
 
 
@@ -80,19 +111,21 @@ def file_exists_at_tag(repo_path, tag, filepath):
     try:
         subprocess.run(
             ["git", "cat-file", "-e", f"{tag}:{filepath}"],
-            capture_output=True, check=True, timeout=10, cwd=repo_path,
+            capture_output=True,
+            check=True,
+            timeout=10,
+            cwd=repo_path,
         )
         return True
     except subprocess.CalledProcessError:
         return False
     except subprocess.TimeoutExpired:
-        print(f"  Warning: git cat-file timed out for {filepath} at {tag}",
-              file=sys.stderr)
+        print(f"  Warning: git cat-file timed out for {filepath} at {tag}", file=sys.stderr)
         return False
 
 
 def classify_pr(title, labels):
-    label_names = {l.lower() for l in labels}
+    label_names = {label.lower() for label in labels}
     if label_names & set(PLATFORM_SKIP_TAGS):
         return "platform_specific"
     if any(re.search(p, title, re.IGNORECASE) for p in PLATFORM_TITLE_PATTERNS):
@@ -123,12 +156,26 @@ def detect_subsystems(files):
 
 def fetch_files(pr_number):
     result = subprocess.run(
-        ["gh", "pr", "view", str(pr_number), "--repo", REPO,
-         "--json", "files", "--jq", ".files[].path"],
-        capture_output=True, text=True, timeout=120)
+        [
+            "gh",
+            "pr",
+            "view",
+            str(pr_number),
+            "--repo",
+            REPO,
+            "--json",
+            "files",
+            "--jq",
+            ".files[].path",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
     if result.returncode != 0:
-        print(f"  Warning: gh pr view #{pr_number} failed: {result.stderr.strip()}",
-              file=sys.stderr)
+        print(
+            f"  Warning: gh pr view #{pr_number} failed: {result.stderr.strip()}", file=sys.stderr
+        )
         return []
     raw = result.stdout.strip()
     return raw.split("\n") if raw else []
@@ -145,8 +192,8 @@ def process_pr(pr, repo_path, tag):
             **pr,
             "classification": classification,
             "skip_reason": "not a bugfix (Feature/Perf/CI/Refactor)"
-                           if classification == "not_bugfix"
-                           else "platform-specific (ROCm/TPU/XPU)",
+            if classification == "not_bugfix"
+            else "platform-specific (ROCm/TPU/XPU)",
             "verdict": "SKIP",
         }
 
@@ -193,8 +240,12 @@ def main():
     args = parser.parse_args()
 
     try:
-        subprocess.run(["git", "rev-parse", "--verify", args.tag],
-                       capture_output=True, check=True, cwd=args.repo)
+        subprocess.run(
+            ["git", "rev-parse", "--verify", args.tag],
+            capture_output=True,
+            check=True,
+            cwd=args.repo,
+        )
     except subprocess.CalledProcessError:
         print(f"Error: tag '{args.tag}' not found in {args.repo}", file=sys.stderr)
         sys.exit(1)
@@ -219,7 +270,7 @@ def main():
     candidates = [r for r in results if r["verdict"] == "CANDIDATE"]
     unclear = [r for r in results if r["classification"] == "unclear"]
 
-    print(f"\nClassification:", file=sys.stderr)
+    print("\nClassification:", file=sys.stderr)
     for k, v in sorted(counts.items()):
         print(f"  {k}: {v}", file=sys.stderr)
     print(f"\nCandidates: {len(candidates)}", file=sys.stderr)
