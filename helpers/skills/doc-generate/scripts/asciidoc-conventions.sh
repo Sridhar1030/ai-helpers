@@ -30,6 +30,10 @@ adoc_module_id() {
     local slug="$2"
     local prefix
     prefix=$(pc_module_prefix "$type")
+    if [[ -z "$prefix" ]]; then
+        echo "Error: unknown module type: $type" >&2
+        return 1
+    fi
     echo "${prefix}${slug}"
 }
 
@@ -141,7 +145,13 @@ adoc_assembly_template() {
 
 EOF
     for mod in "${modules[@]}"; do
-        echo "include::modules/${mod}[leveloffset=+1]"
+        local safe_mod="${mod##*/}"
+        if [[ ! "$safe_mod" =~ ^[A-Za-z0-9._-]+(\.adoc)?$ ]]; then
+            echo "Error: invalid module filename: $mod" >&2
+            return 1
+        fi
+        [[ "$safe_mod" == *.adoc ]] || safe_mod="${safe_mod}.adoc"
+        echo "include::modules/${safe_mod}[leveloffset=+1]"
         echo ""
     done
 }

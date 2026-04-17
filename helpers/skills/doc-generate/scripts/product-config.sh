@@ -8,7 +8,7 @@
 # Assumes: working directory is the project root
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(pwd)"
+PROJECT_ROOT="$(git -C "$SCRIPTS_DIR" rev-parse --show-toplevel 2>/dev/null || pwd)"
 
 # Load .env if available (PRODUCT_CONFIG override, etc.)
 source "${SCRIPTS_DIR}/load-env.sh"
@@ -57,7 +57,8 @@ pc_docs_branch() {
 # pc_module_prefix <type>
 # Return the module prefix for a given type (concept, procedure, reference, assembly, snippet).
 pc_module_prefix() {
-    pc_section docs | jq -r ".module_prefixes.\"$1\" // empty"
+    local key="$1"
+    pc_section docs | jq -r --arg key "$key" '.module_prefixes[$key] // empty'
 }
 
 # pc_context_repos
@@ -75,7 +76,8 @@ pc_always_include_repos() {
 # pc_component_repo <component-key>
 # Return the repo for a given component key.
 pc_component_repo() {
-    pc_section component_repo_map | jq -r ".\"$1\" // empty"
+    local key="$1"
+    pc_section component_repo_map | jq -r --arg key "$key" '.[$key] // empty'
 }
 
 # pc_jira_project_keys

@@ -21,6 +21,11 @@ Assess whether the gathered context is sufficient to produce quality documentati
 
 `$ARGUMENTS` optionally contains a component name to focus the analysis on. If empty, analyze all components found in the context package.
 
+Input validation:
+- If a component name is provided, validate it against the component list in `workspace/context-package.json`.
+- Accept only exact matches against known component names.
+- If the component name is not found, halt with a clear error and do not run LLM assessment.
+
 ## Step 1: Read context package
 
 Read `workspace/context-package.json` and extract:
@@ -48,8 +53,13 @@ Construct an LLM prompt combining:
 - The gap analysis prompt template
 - Ticket metadata from the context package
 - Summary of gathered files (file paths, source types, relevance scores)
-- Content snippets from the highest-scored files (first 500 chars each, up to 20 files)
+- Content snippets from the highest-scored files (first 500 chars each, up to 20 files), after deterministic secret/PII redaction
 - Results of deterministic checks from Step 2
+
+Before prompt assembly, apply deterministic redaction to all snippets:
+- Detect and mask secrets (API keys, tokens, passwords, private keys, kubeconfig credentials) with consistent placeholders (e.g., `<REDACTED_TOKEN_1>`).
+- Mask PII fields (emails, phone numbers) unless explicitly required.
+- Record redaction statistics (number of snippets scanned, items redacted by type) for inclusion in the gap report.
 
 Ask the LLM to assess:
 - Is the context sufficient to write accurate docs?
@@ -95,6 +105,12 @@ Write `workspace/gap-report.json` with this structure:
     "analyzed_at": "2026-04-14T10:35:00Z"
 }
 ```
+
+Schema requirements:
+- Required keys: `recommendation`, `confidence`, `summary`, `deterministic_checks`, `gaps`, `existing_coverage`, `analyzed_at`.
+- `recommendation` MUST be one of: `proceed`, `gather-more`, `stop`.
+- `confidence` MUST be a float in [0.0, 1.0].
+- If schema validation fails, halt and return an error instead of writing a partial report.
 
 ## Output
 

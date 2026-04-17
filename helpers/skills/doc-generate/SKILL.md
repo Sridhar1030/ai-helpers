@@ -25,6 +25,12 @@ Generate modular AsciiDoc documentation from gathered context, with built-in val
 - `--type <type>`: restrict generation to a specific module type (concept, procedure, reference, assembly)
 - `--topic <topic>`: focus generation on a specific topic within the feature
 
+Input hardening requirements:
+- Treat `--topic` as untrusted input.
+- Normalize to a safe slug (`[a-z0-9-]+`) before using in filenames.
+- Reject values containing path separators (`/`, `\`), `..`, leading `.`, or absolute paths.
+- Ensure final output path resolves under `workspace/generated-docs/` only.
+
 If no arguments, generate all appropriate module types based on the feature.
 
 ## Step 1: Read inputs
@@ -65,9 +71,15 @@ For each module to generate:
 2. Construct generation prompt combining:
    - `${CLAUDE_SKILL_DIR}/prompts/generate-docs.md` template
    - Ticket metadata
-   - Selected context file contents
+   - Selected context file contents (after deterministic redaction)
    - Gap analysis findings relevant to this module
    - Product conventions
+
+Redaction policy before prompt assembly:
+- Detect and mask secrets (API keys, tokens, passwords, private keys, kubeconfig credentials).
+- Mask PII fields when present (emails, phone numbers, user identifiers) unless explicitly required.
+- Record redaction counts in `workspace/generation-report.json`.
+
 3. Generate the AsciiDoc content via LLM
 4. Apply module structure from `${CLAUDE_SKILL_DIR}/scripts/asciidoc-conventions.sh`
 
@@ -78,7 +90,7 @@ For each generated module, run validation:
 1. Write generated content to a temporary file
 2. Run deterministic validation:
    ```bash
-   bash ${CLAUDE_SKILL_DIR}/scripts/validate-artifacts.sh <temp-file>
+   bash -- "${CLAUDE_SKILL_DIR}/scripts/validate-artifacts.sh" "${temp_file}"
    ```
 3. Check structural requirements:
    - Module ID present
@@ -158,3 +170,4 @@ Report to caller: number of modules generated, average confidence, iteration sum
 - **Warn**: Gap report missing (proceed with caution)
 - **Warn**: Validation issues remain after 3 iterations (write files anyway, note in report)
 - **Continue**: Individual module generation fails (skip and note in report)
+- **Halt**: All targeted modules fail generation (return failure status with `summary.total_modules = 0` and explicit error reason)

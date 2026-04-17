@@ -49,11 +49,26 @@ _load_dotenv()
 def load_config(path: str) -> dict:
     """Load and return the YAML config as a dict."""
     config_path = Path(path)
-    if not config_path.exists():
+    allowed_root = Path(os.environ.get("PRODUCT_CONFIG_ROOT", Path.cwd())).resolve()
+    resolved = config_path.expanduser().resolve()
+    if allowed_root != resolved and allowed_root not in resolved.parents:
+        print(f"Error: config path escapes allowed root: {path}", file=sys.stderr)
+        sys.exit(1)
+    if resolved.suffix.lower() not in {".yaml", ".yml"}:
+        print(f"Error: config must be a YAML file: {path}", file=sys.stderr)
+        sys.exit(1)
+    if not resolved.is_file():
         print(f"Error: config file not found: {path}", file=sys.stderr)
         sys.exit(1)
-    with open(config_path) as f:
-        return yaml.safe_load(f)
+    with open(resolved, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    if not isinstance(data, dict):
+        print(
+            f"Error: config root must be a YAML mapping/object, got {type(data).__name__}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return data
 
 
 def resolve_component(config: dict, name: str) -> dict | None:
@@ -85,7 +100,14 @@ def resolve_version(config: dict, version_string: str) -> dict:
     for mapping in mappings:
         pattern = mapping.get("jira_version_pattern", "")
         template = mapping.get("branch_template", "")
-        match = re.match(pattern, version_string)
+        try:
+            match = re.match(pattern, version_string)
+        except re.error as exc:
+            print(
+                f"Warning: invalid jira_version_pattern '{pattern}': {exc}",
+                file=sys.stderr,
+            )
+            continue
         if match:
             # Extract version from first capture group
             version = match.group(1) if match.lastindex and match.lastindex >= 1 else version_string

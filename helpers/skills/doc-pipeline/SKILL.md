@@ -35,7 +35,7 @@ Orchestrate documentation skills in dependency order based on the requested pipe
 
 - Confirm the Jira key or PR URL is provided
 - Confirm the mode is one of the valid options
-- Check that `configs/rhoai.yaml` exists
+- Check that `${CLAUDE_SKILL_DIR}/../doc-gather/configs/rhoai.yaml` exists
 
 ### Step 2: Execute skills in order
 

@@ -45,7 +45,12 @@ For each ticket, resolve via MCP and extract:
 - Fix versions
 - Labels
 
-Limit: resolve up to 100 child tickets. If more exist, note the truncation.
+Cycle detection: maintain a visited set of issue keys during traversal. Before descending into any child ticket, check whether its key is already in the visited set. If so, skip that branch and record a note that a cycle was detected.
+
+Limits:
+- Depth cap: 3 levels maximum
+- Global cap: resolve up to 100 child tickets. If more exist, note the truncation.
+- If either cap is reached, stop further traversal and note the truncation in the output.
 
 ## Step 3: Assess documentation impact
 

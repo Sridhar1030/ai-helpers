@@ -25,7 +25,7 @@ FILES=("$@")
 
 if [[ ${#FILES[@]} -eq 0 ]]; then
     echo '{"error": "No files specified"}' >&2
-    echo '{"vale": {"status": "skipped"}, "asciidoctor": {"status": "skipped"}, "lychee": {"status": "skipped"}, "yaml_syntax": {"status": "skipped"}}'
+    echo '{"vale": {"status": "skipped", "findings": []}, "asciidoctor": {"status": "skipped", "findings": []}, "lychee": {"status": "skipped", "findings": []}, "yaml_syntax": {"status": "skipped", "findings": []}}'
     exit 0
 fi
 
@@ -118,10 +118,11 @@ for file in "${FILES[@]}"; do
         YAML_BLOCK=""
         LINE_NUM=0
         BLOCK_START=0
+        PREV_LINE=""
         while IFS= read -r line; do
             LINE_NUM=$((LINE_NUM + 1))
             if [[ "$IN_YAML" == true ]]; then
-                if [[ "$line" == "----" ]] || [[ "$line" == "====" ]]; then
+                if [[ "$line" == "----" || "$line" == "====" ]]; then
                     IN_YAML=false
                     if [[ -n "$YAML_BLOCK" ]]; then
                         # Validate YAML
@@ -135,16 +136,13 @@ for file in "${FILES[@]}"; do
                 else
                     YAML_BLOCK="${YAML_BLOCK}${line}"$'\n'
                 fi
-            elif [[ "$line" == *"[source,yaml"* ]] || [[ "$line" == *"[source,YAML"* ]]; then
-                # Next line should be ---- to start the block
-                :
-            elif [[ "$line" == "----" ]] && [[ -n "$(sed -n "$((LINE_NUM-1))p" "$file" 2>/dev/null)" ]]; then
-                PREV_LINE=$(sed -n "$((LINE_NUM-1))p" "$file" 2>/dev/null || true)
+            elif [[ "$line" == "----" || "$line" == "====" ]]; then
                 if [[ "$PREV_LINE" == *"[source,yaml"* ]] || [[ "$PREV_LINE" == *"[source,YAML"* ]]; then
                     IN_YAML=true
                     BLOCK_START=$LINE_NUM
                 fi
             fi
+            PREV_LINE="$line"
         done < "$file" 2>/dev/null || true
     fi
 done

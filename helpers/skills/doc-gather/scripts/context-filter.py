@@ -43,6 +43,7 @@ Output JSON: filtered list of candidates with relevance scores and signals.
 """
 
 import argparse
+import fnmatch
 import json
 import math
 import os
@@ -269,8 +270,8 @@ def stage_path_relevance(
         for kw in keywords:
             if kw in stem and kw not in kw_matches:
                 kw_matches.add(kw)
-        # Hint matches (weight 1.0)
-        hint_count = sum(1 for h in path_hints if h.lower() in path_lower)
+        # Hint matches (weight 1.0) — use fnmatch for glob pattern support
+        hint_count = sum(1 for h in path_hints if fnmatch.fnmatch(path_lower, h.lower()))
 
         score = len(comp_matches) * 2.0 + len(kw_matches) * 1.0 + hint_count
         raw_scores.append(score)
@@ -363,19 +364,43 @@ def stage_budget_enforcer(candidates: list[dict], token_budget: int) -> list[dic
     for c in candidates:
         c["composite_score"] = composite_score(c)
 
-    sorted_candidates = sorted(candidates, key=lambda c: c["composite_score"], reverse=True)
+    # Separate static (always_include) candidates from dynamic ones
+    static_candidates = [c for c in candidates if c.get("static")]
+    dynamic_candidates = sorted(
+        [c for c in candidates if not c.get("static")],
+        key=lambda c: c["composite_score"],
+        reverse=True,
+    )
+
+    def _estimate_tokens(c: dict) -> int:
+        content = c.get("content", "")
+        if content:
+            return len(content) // 4
+        elif c.get("size_bytes"):
+            return c["size_bytes"] // 4
+        return 0
 
     selected = []
     tokens_used = 0
-    for rank, c in enumerate(sorted_candidates, start=1):
-        # Estimate tokens: content length / 4, or size_bytes / 4, or 0
-        content = c.get("content", "")
-        if content:
-            est_tokens = len(content) // 4
-        elif c.get("size_bytes"):
-            est_tokens = c["size_bytes"] // 4
-        else:
-            est_tokens = 0
+
+    # Always include static candidates first, regardless of budget
+    for c in static_candidates:
+        c = dict(c)
+        est_tokens = _estimate_tokens(c)
+        c.setdefault("signals", []).append(
+            {
+                "filter": "budget_enforcer",
+                "passed": True,
+                "reason": "Static source (always selected first)",
+            }
+        )
+        c["estimated_tokens"] = est_tokens
+        selected.append(c)
+        tokens_used += est_tokens
+
+    # Then fill remaining budget with dynamic candidates
+    for rank, c in enumerate(dynamic_candidates, start=1):
+        est_tokens = _estimate_tokens(c)
 
         if tokens_used + est_tokens <= token_budget:
             c = dict(c)
@@ -387,8 +412,6 @@ def stage_budget_enforcer(candidates: list[dict], token_budget: int) -> list[dic
                         f"Selected at rank {rank}"
                         f" ({tokens_used + est_tokens}"
                         f"/{token_budget} tokens)"
-                        if not c.get("static")
-                        else "Static source (always selected first)"
                     ),
                 }
             )
@@ -407,7 +430,15 @@ def run_pipeline(data: dict) -> list[dict]:
     candidates = data["candidates"]
     task_context = data["task_context"]
     source_declarations = data.get("source_declarations", [])
-    token_budget = data.get("token_budget", 100000)
+    raw_token_budget = data.get("token_budget", 100000)
+    try:
+        token_budget = int(raw_token_budget)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"token_budget must be an integer, got {raw_token_budget!r}") from exc
+    if token_budget < 0:
+        raise ValueError("token_budget must be >= 0")
+    if token_budget > 1_000_000:
+        raise ValueError(f"token_budget must be <= 1000000, got {token_budget}")
 
     # Collect path hints from source declarations
     path_hints = []
@@ -442,9 +473,19 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.candidates and args.task_context:
-        with open(args.candidates) as f:
+        base_dir = Path.cwd().resolve()
+        for path_str in (args.candidates, args.task_context):
+            p = Path(path_str)
+            if p.is_absolute():
+                print(f"Error: absolute path is not allowed: {path_str}", file=sys.stderr)
+                sys.exit(1)
+            resolved = (base_dir / p).resolve()
+            if base_dir not in resolved.parents and resolved != base_dir:
+                print(f"Error: path traversal blocked: {path_str}", file=sys.stderr)
+                sys.exit(1)
+        with open(args.candidates, encoding="utf-8") as f:
             candidates = json.load(f)
-        with open(args.task_context) as f:
+        with open(args.task_context, encoding="utf-8") as f:
             task_context = json.load(f)
         data = {"candidates": candidates, "task_context": task_context}
     else:

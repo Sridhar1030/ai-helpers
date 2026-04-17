@@ -32,7 +32,7 @@ Resolve the target argument to a list of `.adoc` files:
 Execute the validation script on all discovered files:
 
 ```bash
-bash ${CLAUDE_SKILL_DIR}/scripts/validate-artifacts.sh <file1.adoc> <file2.adoc> ...
+bash -- "${CLAUDE_SKILL_DIR}/scripts/validate-artifacts.sh" "${file1}" "${file2}" ...
 ```
 
 This runs:
@@ -73,10 +73,15 @@ Ask the LLM:
 Check AsciiDoc structure requirements:
 
 ```bash
-source ${CLAUDE_SKILL_DIR}/scripts/product-config.sh
-source ${CLAUDE_SKILL_DIR}/scripts/asciidoc-conventions.sh
+source "${CLAUDE_SKILL_DIR}/scripts/product-config.sh"
+source "${CLAUDE_SKILL_DIR}/scripts/asciidoc-conventions.sh"
 for file in <files>; do
     adoc_validate_structure "$file"
+    mod_type="$(adoc_module_type "$file")"
+    if [[ "$mod_type" == "unknown" ]]; then
+        # record structural finding: filename prefix does not map to a known module type
+        :
+    fi
 done
 ```
 
@@ -84,7 +89,7 @@ Verify:
 - Module ID present (`[id="..."]`)
 - Content type attribute set (`:_mod-docs-content-type:`)
 - Level-1 heading present
-- Module type matches filename prefix
+- Module type matches filename prefix (enforced via `adoc_module_type` check)
 
 ## Step 6: Compile findings
 
