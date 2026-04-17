@@ -56,7 +56,7 @@ stream_pid=$!
 # Forward signals to children.  As PID 1 in a container, this
 # process does not get default signal handlers — SIGTERM must be
 # explicitly caught and forwarded.
-# shellcheck disable=SC2317  # invoked indirectly via trap
+# shellcheck disable=SC2317,SC2329  # invoked indirectly via trap
 _on_signal() {
     kill "$claude_pid" "$stream_pid" 2>/dev/null || true
 }

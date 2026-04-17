@@ -12,3 +12,9 @@ PyTorch:
 vLLM:
   - vllm-compare-reqs
   - vllm-slack-summary
+  - vllm-backport-fetch-prs
+  - vllm-backport-classify
+  - vllm-backport-check-backported
+  - vllm-backport-score-rank
+  - vllm-backport-push-report
+  - vllm-backport-cherry-pick
