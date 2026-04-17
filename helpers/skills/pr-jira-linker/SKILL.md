@@ -2,6 +2,7 @@
 name: pr-jira-linker
 description: Find and link Jira issues to PRs/MRs that are missing Jira references. Supports single PR/MR linking and batch audit of configured repos. Use when the user mentions "link PR to Jira", "scan PRs", "PR audit", "MR missing Jira", "link merge request", or wants to connect code changes to Jira for traceability.
 user-invocable: true
+allowed-tools: Read Grep Glob WebFetch Bash user-github plugin-gitlab-GitLab user-mcp-atlassian
 ---
 
 # PR-Jira Linker
@@ -40,7 +41,8 @@ repos:
 
 ## Jira Key Detection
 
-Scan for pattern `[A-Z][A-Z0-9]+-[0-9]+` in: (1) PR/MR title, (2) description, (3) branch name, (4) commit messages. If found anywhere, the PR/MR is **linked**.
+Scan for pattern `[A-Z][A-Z0-9]+-[0-9]+` in: (1) PR/MR title, (2) description, (3) branch name, (4) commit messages.
+If found, mark as **candidate key detected** and verify bidirectional linkage (PR/MR references Jira key and Jira issue has PR/MR URL comment) before classifying as **linked**.
 
 ## Mode 1: Single PR/MR
 
@@ -48,18 +50,19 @@ Scan for pattern `[A-Z][A-Z0-9]+-[0-9]+` in: (1) PR/MR title, (2) description, (
 
 ### Step 1: Read the PR/MR
 
-Use `pull_request_read` (GitHub) or `get_merge_request` (GitLab). If GitLab MCP is down, fall back to `curl --negotiate -u:` against the GitLab REST API. Extract title, description, branch name, author.
+Use `pull_request_read` (GitHub) or `get_merge_request` (GitLab). If GitLab MCP is down, fall back to `curl --negotiate -u:` against the GitLab REST API **only for hosts explicitly allowlisted in `config.yaml`**.
+When using shell, pass URL/host/path as separate, safely quoted arguments (never string-concatenate untrusted input into commands). Enforce timeouts and limit redirects. Extract title, description, branch name, author.
 
 ### Step 2: Detect Jira Reference
 
 Scan title, description, branch, and commits for Jira key.
 
-- **Found**: Report the key, offer to verify bidirectional link.
+- **Found**: Report candidate key and verify bidirectional link status before deciding skip/fix.
 - **Not found**: Proceed to Step 3.
 
 ### Step 3: Find Matching Jira
 
-Search Jira with keywords from the PR/MR title. Show matches and let user pick, or offer to create new / enter key manually / skip.
+Search Jira with **escaped/sanitized** keywords from the PR/MR title (treat user text as data, not query syntax). Strip or escape JQL/Lucene operators (`+ - && || ! ( ) { } [ ] ^ " ~ * ? : \ /`) before constructing the query. If sanitized tokens are empty, fall back to prompting the user for manual input. Show matches and let user pick, or offer to create new / enter key manually / skip.
 
 ### Step 4: Link Bidirectionally
 
@@ -79,7 +82,7 @@ After user selects or creates a Jira issue:
 
 1. **Load repos** from config.yaml
 2. **Scan** open PRs/MRs in each repo, run Jira key detection on each
-3. **Report**: List missing vs. linked, offer to fix individually or fix all
+3. **Report**: List missing vs. linked (verified bidirectionally), offer to fix individually or fix all
 4. **Fix**: Run the Single PR/MR flow for each selected item
 
 ## Creating New Jira Issues
@@ -100,9 +103,9 @@ When no matching Jira exists, the skill can create one:
 
 | Error | Action |
 |-------|--------|
-| GitLab MCP down | Fall back to `curl --negotiate -u:` against GitLab REST API |
+| GitLab MCP down | Fall back to `curl --negotiate -u:` only for allowlisted GitLab hosts; reject non-allowlisted targets |
 | GitHub MCP not available | Skip GitHub repos, process GitLab only |
-| PR/MR already linked | Report and skip (or verify bidirectional) |
+| PR/MR already linked | Verify bidirectional linkage, report and skip if confirmed |
 | Jira search returns nothing | Offer to create new or enter key manually |
 | PR/MR description update fails | Fall back to adding a comment |
 | Permission denied | Inform user, suggest checking repo access |
