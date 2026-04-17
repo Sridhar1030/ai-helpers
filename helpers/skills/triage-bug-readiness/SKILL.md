@@ -26,13 +26,12 @@ Read the following files in order of priority. Stop reading deeper once you have
 1. `.triage-context/ARCHITECTURE.md` (if present) -- Pre-generated architecture overview. Focus on the component map, CRD list, and directory structure. Use this to plan where to look in the code.
 2. `AGENTS.md` and/or `CLAUDE.md` (if present in repo root) -- The repo's own agent guidance, conventions, and critical rules. These are authoritative and take precedence over the architecture doc.
 3. `README.md` -- Fallback orientation if neither of the above exists.
-4. `.triage-context/component-repos.conf` (if present) -- Maps component names to repo URLs. Use this if the ticket references a component by name but you need to confirm the repo URL.
 
 If none of these files exist, explore the repository from scratch: check `go.mod` or `package.json` for the language/framework, list top-level directories, and read any contributing guides.
 
 ## Step 3: Explore the actual code
 
-**Prerequisite**: This step requires a known target repository. If Gate 1 fails because the repo is unknown or ambiguous (no URL found, component name is ambiguous), skip this step entirely -- record the Gate 1 failure in the verdict with rationale, set `repo_readiness` fields to `false` with a note explaining the repo could not be identified, and proceed directly to Step 4.
+**Prerequisite**: This step requires a cloned repository. The orchestrator only invokes the agent when a repo URL was found in the ticket, so a clone should always be available. If for any reason no repo is present in the working directory, set `repo_readiness` fields to `false` with a note and proceed directly to Step 4.
 
 When a target repo is available, context files are a map, not the territory. Use `Grep`, `Glob`, and `Read` to:
 
@@ -54,9 +53,7 @@ The core question: "If the autofix agent were handed this ticket right now, woul
 
 **Target repository:**
 
-- PASS: A valid GitLab/GitHub repo URL is in the description or comments.
-- INFERRED: No explicit URL, but the component name is unambiguous. Check `.triage-context/component-repos.conf` or the architecture doc. When inferred, note this in the verdict so the orchestrator can confirm it in the Jira comment.
-- FAIL: No URL and the component is ambiguous or unknown.
+The orchestrator verifies that a repo URL exists before invoking this skill. Record the URL from the ticket in `gate1.repo_url.value` and set `gate1.repo_url.pass: true`.
 
 **What is broken:**
 
@@ -105,7 +102,7 @@ Even with perfect information, some bugs are not appropriate for automated fixin
 - **performance**: Requires profiling, benchmarking, and potentially architectural changes
 - **non_code_fix**: The resolution is not a code change -- e.g., KCS article update, documentation fix, Jira configuration, or infra/config-only change that the autofix agent cannot make
 
-**Cross-repo within the same organization:** If the fix requires changes in a different repository but that repository is also listed in `.triage-context/component-repos.conf` or belongs to the same GitHub/GitLab organization (e.g., both repos are under `opendatahub-io`), this is NOT `systemic_architectural`. Classify as **ready** and note in `gate3.note` that the fix spans multiple repos within the org. The autofix agent can be given access to sibling repos in the same organization. Only classify as `not_fixable` with `systemic_architectural` when the upstream dependency is genuinely outside the team's control.
+**Cross-repo within the same organization:** If the fix requires changes in a different repository but that repository belongs to the same GitHub/GitLab organization (e.g., both repos are under `opendatahub-io`), this is NOT `systemic_architectural`. Classify as **ready** and note in `gate3.note` that the fix spans multiple repos within the org. The autofix agent can be given access to sibling repos in the same organization. Only classify as `not_fixable` with `systemic_architectural` when the upstream dependency is genuinely outside the team's control.
 
 **Blocked or dependent bugs:** If a ticket has a "blocked by" link or depends on an external fix, consider whether a workaround exists in the target repo (compatibility shim, version pin, fallback path, feature gate). If a viable workaround exists, classify as `ready` with `"confidence": "medium"` and describe the workaround approach in `gate3.note`. Only classify as `not_fixable` if there is truly no interim mitigation possible within the target repo.
 
@@ -135,7 +132,6 @@ The JSON schema:
   "gate1": {
     "repo_url": {
       "pass": true,
-      "inferred": false,
       "value": "https://github.com/org/repo",
       "note": "Found in ticket description"
     },
@@ -178,8 +174,7 @@ Field requirements:
 - `verdict`: One of `"ready"`, `"needs_info"`, `"not_fixable"`.
 - `confidence`: Your confidence in the verdict. `"high"` = clear-cut. `"medium"` = reasonable but some uncertainty. `"low"` = borderline call.
 - `gate1`, `gate2`, `gate3`: Assessment of each gate with pass/fail and notes.
-- `gate1.repo_url.inferred`: Set to `true` if you resolved the repo URL from a component name rather than an explicit URL in the ticket. The orchestrator will include a confirmation prompt in its Jira comment.
-- `gate1.repo_url.value`: The repo URL (explicit or inferred). Leave empty string if unknown.
+- `gate1.repo_url.value`: The repo URL from the ticket. Always present (the orchestrator pre-filters tickets without a URL).
 - `gate3.not_fixable_reason`: One of `"requires_design_decisions"`, `"requires_infrastructure"`, `"systemic_architectural"`, `"needs_runtime_investigation"`, `"performance"`, `"non_code_fix"`, or `null` if Gate 3 passes.
 - `gate3.cross_repo`: If the fix spans multiple repos within the same org, list the additional repo URLs here (e.g., `["https://github.com/opendatahub-io/elyra"]`). Set to `null` for single-repo fixes or truly external dependencies.
 - `repo_readiness`: Object describing the repo's readiness for automated fixing. Fields: `has_agent_docs` (bool -- `AGENTS.md`, `CLAUDE.md`, or `CONTRIBUTING.md` exists), `has_build_targets` (bool -- `Makefile` or equivalent has `build`/`test`/`lint` targets), `has_lint_config` (bool -- `.golangci.yml`, `.eslintrc`, `pyproject.toml [tool.ruff]`, etc.), `note` (string -- brief summary).
@@ -206,4 +201,4 @@ Always end the message with: "Please update the ticket, then remove the `jira-tr
 
 For `not_fixable` verdicts, explain clearly why the bug is not suitable for automated fixing, referencing the specific Gate 3 category. Suggest what kind of human intervention is needed (e.g., "A release engineer should investigate" or "This requires a design discussion to determine the correct behavior").
 
-For `ready` verdicts, `message_to_opener` should be an empty string. Any advisory notes (e.g., "repo URL was inferred") are handled by the orchestrator.
+For `ready` verdicts, `message_to_opener` should be an empty string.
