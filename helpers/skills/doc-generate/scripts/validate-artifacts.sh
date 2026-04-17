@@ -19,6 +19,7 @@ set -euo pipefail
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Load .env if available
+# shellcheck disable=SC1091
 source "${SCRIPTS_DIR}/load-env.sh"
 
 FILES=("$@")
@@ -119,6 +120,7 @@ for file in "${FILES[@]}"; do
         LINE_NUM=0
         BLOCK_START=0
         PREV_LINE=""
+        CURRENT_FILE="$file"
         while IFS= read -r line; do
             LINE_NUM=$((LINE_NUM + 1))
             if [[ "$IN_YAML" == true ]]; then
@@ -127,8 +129,8 @@ for file in "${FILES[@]}"; do
                     if [[ -n "$YAML_BLOCK" ]]; then
                         # Validate YAML
                         if ! echo "$YAML_BLOCK" | python3 -c "import sys, yaml; yaml.safe_load(sys.stdin)" 2>/dev/null; then
-                            YAML_FINDINGS=$(echo "$YAML_FINDINGS" | jq --arg file "$file" --argjson line "$BLOCK_START" \
-                                '. + [{file: $file, line: $line, message: "Invalid YAML syntax in code block", severity: "high", tool: "yaml_syntax"}]')
+                            YAML_FINDINGS=$(echo "$YAML_FINDINGS" | jq --arg f "$CURRENT_FILE" --argjson line "$BLOCK_START" \
+                                '. + [{file: $f, line: $line, message: "Invalid YAML syntax in code block", severity: "high", tool: "yaml_syntax"}]')
                             YAML_STATUS="fail"
                         fi
                     fi

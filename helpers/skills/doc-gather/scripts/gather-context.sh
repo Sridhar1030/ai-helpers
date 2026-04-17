@@ -27,6 +27,7 @@ set -euo pipefail
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Load shared git utilities (also loads .env via load-env.sh)
+# shellcheck disable=SC1091
 source "${SCRIPTS_DIR}/git-utils.sh"
 
 REPO_SLUG="${1:?Usage: gather-context.sh <repo-slug> <branch> [path-pattern...]}"

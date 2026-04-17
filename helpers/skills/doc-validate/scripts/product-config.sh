@@ -11,6 +11,7 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(git -C "$SCRIPTS_DIR" rev-parse --show-toplevel 2>/dev/null || pwd)"
 
 # Load .env if available (PRODUCT_CONFIG override, etc.)
+# shellcheck disable=SC1091
 source "${SCRIPTS_DIR}/load-env.sh"
 
 CONFIG_PATH="${PRODUCT_CONFIG:-${PROJECT_ROOT}/configs/rhoai.yaml}"

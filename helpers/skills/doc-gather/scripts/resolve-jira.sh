@@ -25,6 +25,7 @@ set -euo pipefail
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Load .env if available (credentials, JIRA_URL, etc.)
+# shellcheck disable=SC1091
 source "${SCRIPTS_DIR}/load-env.sh"
 
 TICKET_KEY="${1:?Usage: resolve-jira.sh <JIRA-KEY>}"

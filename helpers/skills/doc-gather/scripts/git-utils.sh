@@ -10,6 +10,7 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(pwd)"
 
 # Load .env if available (GITHUB_TOKEN, etc.)
+# shellcheck disable=SC1091
 source "${SCRIPTS_DIR}/load-env.sh"
 
 WORKSPACE="${PROJECT_ROOT}/workspace/repos"
