@@ -252,39 +252,48 @@ def main() -> None:
 
     if args.docs_repo:
         docs = config.get("docs", {})
-        value = docs.get("repo", "")
-        if value:
-            print(value)
+        if isinstance(docs, dict):
+            value = docs.get("repo", "")
+            if value:
+                print(value)
         return
 
     if args.docs_branch:
         docs = config.get("docs", {})
-        value = docs.get("branch_template", "")
-        if value:
-            print(value)
+        if isinstance(docs, dict):
+            value = docs.get("branch_template", "")
+            if value:
+                print(value)
         return
 
     if args.module_prefix is not None:
         docs = config.get("docs", {})
-        prefixes = docs.get("module_prefixes", {})
-        value = prefixes.get(args.module_prefix, "")
-        if value:
-            print(value)
+        if isinstance(docs, dict):
+            prefixes = docs.get("module_prefixes", {})
+            if isinstance(prefixes, dict):
+                value = prefixes.get(args.module_prefix, "")
+                if value:
+                    print(value)
         return
 
     if args.context_repos:
-        for source in config.get("context_sources", []):
-            repo = source.get("repo", "")
-            if repo:
-                print(repo)
+        sources = config.get("context_sources", [])
+        if isinstance(sources, list):
+            for source in sources:
+                if isinstance(source, dict):
+                    repo = source.get("repo", "")
+                    if repo:
+                        print(repo)
         return
 
     if args.always_include_repos:
-        for source in config.get("context_sources", []):
-            if source.get("always_include", False):
-                repo = source.get("repo", "")
-                if repo:
-                    print(repo)
+        sources = config.get("context_sources", [])
+        if isinstance(sources, list):
+            for source in sources:
+                if isinstance(source, dict) and source.get("always_include", False):
+                    repo = source.get("repo", "")
+                    if repo:
+                        print(repo)
         return
 
     if args.component_repo is not None:
@@ -296,8 +305,11 @@ def main() -> None:
 
     if args.jira_project_keys:
         jira = config.get("jira", {})
-        for key in jira.get("project_keys", []):
-            print(key)
+        if isinstance(jira, dict):
+            keys = jira.get("project_keys", [])
+            if isinstance(keys, list):
+                for key in keys:
+                    print(key)
         return
 
     # --- JSON output flags ---
