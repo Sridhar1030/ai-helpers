@@ -100,6 +100,8 @@ def resolve_component(config: dict, name: str) -> dict | None:
     Returns the matching component dict or None.
     """
     resolver = config.get("component_resolver", {})
+    if not isinstance(resolver, dict):
+        return None
     components = resolver.get("components", [])
     name_lower = name.lower()
     for comp in components:
@@ -128,9 +130,11 @@ def resolve_version(config: dict, version_string: str) -> dict:
             continue
         pattern = mapping.get("jira_version_pattern", "")
         template = mapping.get("branch_template", "")
+        if not isinstance(pattern, str) or not isinstance(template, str):
+            continue
         try:
             match = re.match(pattern, version_string)
-        except re.error as exc:
+        except (re.error, TypeError) as exc:
             print(
                 f"Warning: invalid jira_version_pattern '{pattern}': {exc}",
                 file=sys.stderr,
@@ -165,6 +169,8 @@ def get_context_sources(config: dict) -> list[dict]:
 def get_component_repo_map(config: dict) -> dict[str, str | None]:
     """Return a mapping of component key -> repo slug."""
     resolver = config.get("component_resolver", {})
+    if not isinstance(resolver, dict):
+        return {}
     components = resolver.get("components", [])
     result: dict[str, str | None] = {}
     for comp in components:
@@ -183,6 +189,8 @@ def get_component_repo_map(config: dict) -> dict[str, str | None]:
 def get_jira_name_map(config: dict) -> dict[str, str]:
     """Return a mapping of Jira display name (lowered) -> component key."""
     resolver = config.get("component_resolver", {})
+    if not isinstance(resolver, dict):
+        return {}
     components = resolver.get("components", [])
     result: dict[str, str] = {}
     for comp in components:

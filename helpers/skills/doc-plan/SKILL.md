@@ -21,7 +21,7 @@ Produce a documentation plan for a strategic initiative (STRAT) or epic by analy
 
 Call the MCP tool to resolve the ticket:
 
-```
+```text
 mcp__mcp-atlassian__jira_get_issue(issue_key="<KEY>")
 ```
 
