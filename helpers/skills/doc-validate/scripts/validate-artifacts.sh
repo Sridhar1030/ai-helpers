@@ -139,7 +139,7 @@ for file in "${FILES[@]}"; do
                     YAML_BLOCK="${YAML_BLOCK}${line}"$'\n'
                 fi
             elif [[ "$line" == "----" || "$line" == "====" ]]; then
-                if [[ "$PREV_LINE" == *"[source,yaml"* ]] || [[ "$PREV_LINE" == *"[source,YAML"* ]]; then
+                if [[ "${PREV_LINE,,}" =~ \[source,[^]]*yaml[^]]*\] ]]; then
                     IN_YAML=true
                     BLOCK_START=$LINE_NUM
                 fi
