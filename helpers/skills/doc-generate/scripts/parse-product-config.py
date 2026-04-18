@@ -156,17 +156,37 @@ def get_component_repo_map(config: dict) -> dict[str, str | None]:
     """Return a mapping of component key -> repo slug."""
     resolver = config.get("component_resolver", {})
     components = resolver.get("components", [])
-    return {comp["key"]: comp.get("repo") for comp in components}
+    result: dict[str, str | None] = {}
+    for comp in components:
+        if not isinstance(comp, dict):
+            print(f"Warning: skipping non-dict component entry: {comp!r}", file=sys.stderr)
+            continue
+        key = comp.get("key")
+        if not key or not isinstance(key, str):
+            msg = f"Warning: skipping component with missing/invalid key: {comp!r}"
+            print(msg, file=sys.stderr)
+            continue
+        result[key] = comp.get("repo")
+    return result
 
 
 def get_jira_name_map(config: dict) -> dict[str, str]:
     """Return a mapping of Jira display name (lowered) -> component key."""
     resolver = config.get("component_resolver", {})
     components = resolver.get("components", [])
-    result = {}
+    result: dict[str, str] = {}
     for comp in components:
-        for name in comp.get("jira_names", []):
-            result[name.lower()] = comp["key"]
+        if not isinstance(comp, dict):
+            continue
+        key = comp.get("key")
+        if not key or not isinstance(key, str):
+            continue
+        jira_names = comp.get("jira_names", [])
+        if not isinstance(jira_names, list):
+            continue
+        for name in jira_names:
+            if isinstance(name, str):
+                result[name.lower()] = key
     return result
 
 
