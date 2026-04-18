@@ -32,7 +32,6 @@ from pathlib import Path
 
 import yaml
 
-
 _DOTENV_DENY_KEYS = frozenset({"PRODUCT_CONFIG_ROOT"})
 
 
