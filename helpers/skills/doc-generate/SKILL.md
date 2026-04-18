@@ -38,7 +38,7 @@ If no arguments, generate all appropriate module types based on the feature.
 1. Read `workspace/context-package.json`
 2. Read `workspace/gap-report.json` (if exists)
 3. Read `${CLAUDE_SKILL_DIR}/prompts/generate-docs.md`
-4. Source `${CLAUDE_SKILL_DIR}/scripts/product-config.sh` and `${CLAUDE_SKILL_DIR}/scripts/asciidoc-conventions.sh` for module templates
+4. Source `${CLAUDE_SKILL_DIR}/scripts/asciidoc-conventions.sh` for module templates
 
 Check gap report recommendation:
 - If `stop`: halt and report to caller that context is insufficient
@@ -90,7 +90,7 @@ For each generated module, run validation:
 1. Write generated content to a temporary file
 2. Run deterministic validation:
    ```bash
-   bash -- "${CLAUDE_SKILL_DIR}/scripts/validate-artifacts.sh" "${temp_file}"
+   python3 "${CLAUDE_SKILL_DIR}/scripts/validate-artifacts.py" "${temp_file}"
    ```
 3. Check structural requirements:
    - Module ID present

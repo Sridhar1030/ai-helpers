@@ -10,8 +10,17 @@ Usage:
     python3 parse-product-config.py configs/rhoai.yaml --section jira
     python3 parse-product-config.py configs/rhoai.yaml --resolve-component "Dashboard"
     python3 parse-product-config.py configs/rhoai.yaml --resolve-version "rhoai-2.18.GA1"
+    python3 parse-product-config.py configs/rhoai.yaml --product-id
+    python3 parse-product-config.py configs/rhoai.yaml --docs-repo
+    python3 parse-product-config.py configs/rhoai.yaml --docs-branch
+    python3 parse-product-config.py configs/rhoai.yaml --module-prefix concept
+    python3 parse-product-config.py configs/rhoai.yaml --context-repos
+    python3 parse-product-config.py configs/rhoai.yaml --always-include-repos
+    python3 parse-product-config.py configs/rhoai.yaml --component-repo dashboard
+    python3 parse-product-config.py configs/rhoai.yaml --jira-project-keys
 
-Outputs JSON to stdout. Errors go to stderr.
+Outputs JSON to stdout (for --section, --resolve-*) or plain text
+(for convenience flags). Errors go to stderr.
 """
 
 import argparse
@@ -159,8 +168,98 @@ def main() -> None:
         "--resolve-version", metavar="VERSION", help="Resolve a Jira version string"
     )
 
+    # Convenience flags (replace product-config.sh pc_* functions)
+    parser.add_argument("--product-id", action="store_true", help="Print product_id")
+    parser.add_argument("--docs-repo", action="store_true", help="Print docs repo slug")
+    parser.add_argument("--docs-branch", action="store_true", help="Print docs branch template")
+    parser.add_argument(
+        "--module-prefix",
+        metavar="TYPE",
+        help="Print module prefix for TYPE (concept, procedure, reference, assembly, snippet)",
+    )
+    parser.add_argument(
+        "--context-repos",
+        action="store_true",
+        help="Print newline-separated list of context source repos",
+    )
+    parser.add_argument(
+        "--always-include-repos",
+        action="store_true",
+        help="Print newline-separated list of always-include repos",
+    )
+    parser.add_argument(
+        "--component-repo",
+        metavar="KEY",
+        help="Print repo for a component key",
+    )
+    parser.add_argument(
+        "--jira-project-keys",
+        action="store_true",
+        help="Print newline-separated list of Jira project keys",
+    )
+
     args = parser.parse_args()
     config = load_config(args.config)
+
+    # --- Convenience flags (plain-text output) ---
+
+    if args.product_id:
+        value = config.get("product_id", "")
+        if value:
+            print(value)
+        return
+
+    if args.docs_repo:
+        docs = config.get("docs", {})
+        value = docs.get("repo", "")
+        if value:
+            print(value)
+        return
+
+    if args.docs_branch:
+        docs = config.get("docs", {})
+        value = docs.get("branch_template", "")
+        if value:
+            print(value)
+        return
+
+    if args.module_prefix is not None:
+        docs = config.get("docs", {})
+        prefixes = docs.get("module_prefixes", {})
+        value = prefixes.get(args.module_prefix, "")
+        if value:
+            print(value)
+        return
+
+    if args.context_repos:
+        for source in config.get("context_sources", []):
+            repo = source.get("repo", "")
+            if repo:
+                print(repo)
+        return
+
+    if args.always_include_repos:
+        for source in config.get("context_sources", []):
+            if source.get("always_include", False):
+                repo = source.get("repo", "")
+                if repo:
+                    print(repo)
+        return
+
+    if args.component_repo is not None:
+        repo_map = get_component_repo_map(config)
+        value = repo_map.get(args.component_repo)
+        if value:
+            print(value)
+        return
+
+    if args.jira_project_keys:
+        jira = config.get("jira", {})
+        for key in jira.get("project_keys", []):
+            print(key)
+        return
+
+    # --- JSON output flags ---
 
     if args.resolve_component:
         result = resolve_component(config, args.resolve_component)

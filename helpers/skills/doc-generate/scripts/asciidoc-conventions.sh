@@ -4,7 +4,27 @@
 # Source this file to get helper functions:
 #   source "${CLAUDE_SKILL_DIR}/scripts/asciidoc-conventions.sh"
 #
-# Requires: source product-config.sh first (from same scripts/ directory)
+# Self-contained: resolves product config via parse-product-config.py.
+
+_ADOC_SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_ADOC_PROJECT_ROOT="$(git -C "$_ADOC_SCRIPTS_DIR" rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+# shellcheck disable=SC1091
+source "${_ADOC_SCRIPTS_DIR}/load-env.sh"
+
+_ADOC_CONFIG_PATH="${PRODUCT_CONFIG:-${_ADOC_PROJECT_ROOT}/configs/rhoai.yaml}"
+_ADOC_PARSE_SCRIPT="${_ADOC_SCRIPTS_DIR}/parse-product-config.py"
+_ADOC_PYTHON3="$(command -v python3 || command -v python)" || {
+    echo "Error: python3 (or python) not found in PATH" >&2
+    # shellcheck disable=SC2317
+    return 1 2>/dev/null || exit 1
+}
+
+# _adoc_module_prefix <type>
+# Return the module prefix for a given type via parse-product-config.py.
+_adoc_module_prefix() {
+    "$_ADOC_PYTHON3" "$_ADOC_PARSE_SCRIPT" "$_ADOC_CONFIG_PATH" --module-prefix "$1"
+}
 
 # adoc_module_name <type> <slug>
 # Generate a module filename following naming conventions.
@@ -14,7 +34,7 @@ adoc_module_name() {
     local type="$1"
     local slug="$2"
     local prefix
-    prefix=$(pc_module_prefix "$type")
+    prefix=$(_adoc_module_prefix "$type")
     if [[ -z "$prefix" ]]; then
         echo "Error: unknown module type: $type" >&2
         return 1
@@ -29,7 +49,7 @@ adoc_module_id() {
     local type="$1"
     local slug="$2"
     local prefix
-    prefix=$(pc_module_prefix "$type")
+    prefix=$(_adoc_module_prefix "$type")
     if [[ -z "$prefix" ]]; then
         echo "Error: unknown module type: $type" >&2
         return 1

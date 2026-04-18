@@ -32,7 +32,7 @@ Resolve the target argument to a list of `.adoc` files:
 Execute the validation script on all discovered files:
 
 ```bash
-bash -- "${CLAUDE_SKILL_DIR}/scripts/validate-artifacts.sh" "${file1}" "${file2}" ...
+python3 "${CLAUDE_SKILL_DIR}/scripts/validate-artifacts.py" "${file1}" "${file2}" ...
 ```
 
 This runs:
@@ -73,7 +73,6 @@ Ask the LLM:
 Check AsciiDoc structure requirements:
 
 ```bash
-source "${CLAUDE_SKILL_DIR}/scripts/product-config.sh"
 source "${CLAUDE_SKILL_DIR}/scripts/asciidoc-conventions.sh"
 for file in <files>; do
     adoc_validate_structure "$file"
