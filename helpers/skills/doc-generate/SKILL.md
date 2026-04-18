@@ -110,7 +110,7 @@ For each generated module, run validation:
 
 Write generated modules to `workspace/generated-docs/`:
 
-```
+```text
 workspace/generated-docs/
 ├── con_feature-name.adoc
 ├── proc_feature-name.adoc
