@@ -103,8 +103,12 @@ def resolve_component(config: dict, name: str) -> dict | None:
     components = resolver.get("components", [])
     name_lower = name.lower()
     for comp in components:
-        jira_names = [n.lower() for n in comp.get("jira_names", [])]
-        if name_lower in jira_names:
+        if not isinstance(comp, dict):
+            continue
+        jira_names = comp.get("jira_names", [])
+        if not isinstance(jira_names, list):
+            continue
+        if name_lower in [n.lower() for n in jira_names if isinstance(n, str)]:
             return comp
     return None
 
@@ -120,6 +124,8 @@ def resolve_version(config: dict, version_string: str) -> dict:
     """
     mappings = config.get("version_mappings", [])
     for mapping in mappings:
+        if not isinstance(mapping, dict):
+            continue
         pattern = mapping.get("jira_version_pattern", "")
         template = mapping.get("branch_template", "")
         try:
@@ -148,6 +154,8 @@ def get_context_sources(config: dict) -> list[dict]:
     sources = config.get("context_sources", [])
     result = []
     for source in sources:
+        if not isinstance(source, dict):
+            continue
         entry = dict(source)
         entry["always_include"] = source.get("always_include", False)
         result.append(entry)
