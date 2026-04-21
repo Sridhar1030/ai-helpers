@@ -157,6 +157,14 @@
         "allowed_tools": "Bash Read"
       },
       {
+        "name": "pr-jira-linker",
+        "description": "Find and link Jira issues to PRs/MRs that are missing Jira references. Supports single PR/MR linking and batch audit of configured repos. Use when the user mentions \"link PR to Jira\", \"scan PRs\", \"PR audit\", \"MR missing Jira\", \"link merge request\", or wants to connect code changes to Jira for traceability.",
+        "category": "general",
+        "file_path": "helpers/skills/pr-jira-linker/SKILL.md",
+        "id": "pr-jira-linker",
+        "allowed_tools": "Read Grep Glob WebFetch Bash user-github plugin-gitlab-GitLab user-mcp-atlassian"
+      },
+      {
         "name": "python-full-deps",
         "description": "Resolve the full install-time dependency tree for a Python package. Use when the user needs all transitive dependencies, full dependency list, or install requirements resolved for a specific Python version with environment markers.",
         "category": "general",
