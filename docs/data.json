@@ -209,7 +209,7 @@
       },
       {
         "name": "jira-status-summary",
-        "description": "Update the Status Summary field on AIPCC Feature and Initiative tickets. Fetches child ticket activity via the jira-activity skill, generates a health-color summary (green/yellow/red), and writes it to Jira. Use when asked to update the status summary for a Jira ticket.\n",
+        "description": "Update the Status Summary and Color Status fields on AIPCC Feature and Initiative tickets. Fetches child ticket activity via the jira-activity skill, generates a brief summary and sets the red/yellow/green color status. Use when asked to update the status summary for a Jira ticket.\n",
         "category": "aipcc",
         "file_path": "helpers/skills/jira-status-summary/SKILL.md",
         "id": "jira-status-summary",

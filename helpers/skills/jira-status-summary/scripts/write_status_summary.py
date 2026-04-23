@@ -5,11 +5,11 @@
 # ]
 # ///
 """
-Write a formatted Status Summary to a Jira ticket's custom field.
+Write a Status Summary and Color Status to a Jira ticket.
 
-Builds a date-stamped status string with health color and AI disclaimer,
-converts it to Atlassian Document Format (ADF), and writes it to the
-"Status Summary" custom field via the Jira REST API v3.
+Sets the "Color Status" dropdown field (red/yellow/green) and writes a date-stamped
+summary with AI disclaimer to the "Status Summary" rich-text field, both
+via the Jira REST API v3 in a single PUT.
 
 Authentication:
   JIRA_API_TOKEN environment variable must be set with a valid API token
@@ -36,12 +36,13 @@ import requests
 JIRA_URL = "https://redhat.atlassian.net"
 API_VERSION = "3"
 API_TIMEOUT = int(os.getenv("JIRA_API_TIMEOUT", "30"))
-STATUS_FIELD_NAME = "Status Summary"
+STATUS_SUMMARY_FIELD = "customfield_10814"
+COLOR_STATUS_FIELD = "customfield_10712"
 
-COLOR_MAP = {
-    "green": ("Green", "\U0001f7e2"),
-    "yellow": ("Yellow", "\U0001f7e1"),
-    "red": ("Red", "\U0001f534"),
+COLOR_OPTION_IDS = {
+    "green": "17287",
+    "yellow": "17288",
+    "red": "17289",
 }
 
 
@@ -61,11 +62,10 @@ def get_auth() -> tuple[str, str]:
     return (email, token)
 
 
-def build_status_text(color: str, summary: str) -> str:
-    color_label, emoji = COLOR_MAP[color]
+def build_status_text(summary: str) -> str:
     date_str = datetime.now(timezone.utc).strftime("%d/%b/%Y")
     return (
-        f"{date_str} {color_label} {emoji}\n"
+        f"{date_str}\n"
         f"\u26a0\ufe0f AI-generated summary \u2014 please review before the Program Call.\n"
         f"\n"
         f"{summary}"
@@ -82,33 +82,22 @@ def text_to_adf(text: str) -> dict:
     return {"version": 1, "type": "doc", "content": paragraphs}
 
 
-def find_field_id(field_name: str, auth: tuple[str, str]) -> str:
-    resp = requests.get(
-        api_url("field"),
-        headers={"Content-Type": "application/json"},
-        auth=auth,
-        timeout=API_TIMEOUT,
-    )
-    if resp.status_code != 200:
-        print(f"ERROR: HTTP {resp.status_code} fetching fields: {resp.text}", file=sys.stderr)
-        sys.exit(1)
-    for field in resp.json():
-        if field.get("name") == field_name:
-            return field["id"]
-    print(f"ERROR: Field '{field_name}' not found in Jira metadata.", file=sys.stderr)
-    sys.exit(1)
-
-
-def write_field(ticket: str, field_id: str, adf_value: dict, auth: tuple[str, str]) -> None:
+def write_fields(ticket: str, adf_value: dict, color: str, auth: tuple[str, str]) -> None:
+    payload = {
+        "fields": {
+            STATUS_SUMMARY_FIELD: adf_value,
+            COLOR_STATUS_FIELD: {"id": COLOR_OPTION_IDS[color]},
+        }
+    }
     resp = requests.put(
         api_url(f"issue/{ticket}"),
         headers={"Content-Type": "application/json"},
-        json={"fields": {field_id: adf_value}},
+        json=payload,
         auth=auth,
         timeout=API_TIMEOUT,
     )
     if resp.status_code == 204:
-        print(f"Updated '{STATUS_FIELD_NAME}' on {ticket}")
+        print(f"Updated 'Status Summary' and 'Color Status' on {ticket}")
     else:
         print(f"ERROR: HTTP {resp.status_code} updating {ticket}: {resp.text}", file=sys.stderr)
         sys.exit(1)
@@ -138,18 +127,20 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    status_text = build_status_text(args.color, args.summary)
+    status_text = build_status_text(args.summary)
 
     if args.dry_run:
-        print("[DRY RUN] Would write to", args.ticket_key)
+        print(f"[DRY RUN] Would write to {args.ticket_key}")
         print()
+        print(f'Field "Color Status": {args.color.capitalize()}')
+        print()
+        print('Field "Status Summary":')
         print(status_text)
         return
 
     auth = get_auth()
     adf_value = text_to_adf(status_text)
-    field_id = find_field_id(STATUS_FIELD_NAME, auth)
-    write_field(args.ticket_key, field_id, adf_value, auth)
+    write_fields(args.ticket_key, adf_value, args.color, auth)
 
 
 if __name__ == "__main__":
