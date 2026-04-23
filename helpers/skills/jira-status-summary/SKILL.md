@@ -1,9 +1,9 @@
 ---
 name: jira-status-summary
 description: >
-  Update the Status Summary field on AIPCC Feature and Initiative tickets.
-  Fetches child ticket activity via the jira-activity skill, generates a
-  health-color summary (green/yellow/red), and writes it to Jira.
+  Update the Status Summary and Color Status fields on AIPCC Feature and
+  Initiative tickets. Fetches child ticket activity via the jira-activity
+  skill, generates a brief summary and sets the red/yellow/green color status.
   Use when asked to update the status summary for a Jira ticket.
 allowed-tools: Bash
 user-invocable: true
@@ -11,8 +11,8 @@ user-invocable: true
 
 # Jira Status Summary
 
-Update the "Status Summary" custom field on an AIPCC Feature or Initiative
-ticket with an AI-generated health-color summary.
+Update the "Status Summary" and "Color Status" fields on an AIPCC Feature
+or Initiative ticket with an AI-generated summary and health color.
 
 ## Prerequisites
 
@@ -24,8 +24,9 @@ ticket with an AI-generated health-color summary.
 
 ## Usage
 
-This skill takes a single ticket key as input and produces a formatted status
-summary written to the Jira "Status Summary" custom field.
+This skill takes a single ticket key as input and writes a formatted status
+summary to the Jira "Status Summary" field and sets the "Color Status"
+dropdown.
 
 If the user asks for a **dry run** (or uses the words "dry run", "preview",
 "don't write", "show me first"), add `--dry-run` to the write command in
@@ -40,17 +41,23 @@ user can review before committing.
 2. Otherwise, search the conversation history for JIRA ticket references (e.g., "AIPCC-1234")
 3. If no ticket is found in context, ask the user: "Which ticket should I update the Status Summary for? (e.g., AIPCC-1234)"
 
-### Step 2: Fetch Previous Status Summary
+### Step 2: Fetch Previous Status Summary and Color Status
 
-Use `acli` to retrieve the current Status Summary value from the ticket:
+Fetch the previous Status Summary and Color Status from the ticket:
 
 ```bash
-acli jira workitem view <TICKET-KEY> -f 'customfield_10814' --json
+acli jira workitem view <TICKET-KEY> -f 'customfield_10814,customfield_10712' --json
 ```
 
-Parse the JSON output to extract the previous summary text. If the field is
-empty or unset, treat it as no previous summary. Save this output for use
-in Step 4.
+Parse the JSON output to extract:
+
+- `customfield_10814`: the previous summary (rich-text / ADF content)
+- `customfield_10712`: the previous color status ("Green", "Yellow", or
+  "Red")
+
+If either field is empty or unset, treat it as no previous value. Save
+both outputs for use in Step 4 -- the previous color provides trending
+context (e.g. improving from red to yellow).
 
 If the command fails (e.g., due to permissions or network issues), continue
 with Step 3 and generate the summary without prior context.
@@ -105,6 +112,10 @@ Write a brief summary (2-4 sentences) for leadership consumption covering:
   or blockers have been resolved, and flag anything that was mentioned
   previously but still has no progress
 
+For **yellow** or **red** items, the summary must also include a description
+of the issue and a "path to green" (e.g. move dates, escalation, dependency
+resolution).
+
 The summary must be self-contained and understandable without reading the
 child tickets. Do NOT include the date, color name, emoji, or disclaimer
 in the summary text -- those are added automatically by the script.
@@ -122,16 +133,18 @@ shebang:
 ```
 
 The script will:
-- Format the status string with today's date, color label, emoji, and AI disclaimer
+- Set the "Color Status" dropdown field (red/yellow/green) on the ticket
+- Format the status string with today's date and AI disclaimer (no color
+  in the text -- color is tracked in the separate "Color Status" field)
 - Convert to Atlassian Document Format (ADF)
-- Write the value to the "Status Summary" custom field on the ticket
+- Write both fields to the ticket in a single API call
 - Print a success or error message
 
 ### Step 6: Report Result
 
 **Normal run:** If the write succeeds, inform the user:
 
-> Updated the Status Summary on <TICKET-KEY> with health color: <Color>.
+> Updated the Status Summary and Color Status (<Color>) on <TICKET-KEY>.
 > View: https://redhat.atlassian.net/browse/<TICKET-KEY>
 
 **Dry run:** Show the formatted summary and ask:
