@@ -1782,6 +1782,13 @@
                     </button>
                 </div>
 
+                <p style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 600;">
+                    Updating
+                </p>
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    Auto-update is disabled by default for third-party marketplaces. To enable it, run <code style="background: var(--bg-code); padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.85em;">/plugin</code>, navigate to <strong>Marketplaces</strong> → <strong>odh-ai-helpers</strong>, and select <strong>Enable auto-update</strong>.
+                </p>
+
                 <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
 
                 <h3 style="margin-bottom: 1rem; color: #4A90E2; display: flex; align-items: center; gap: 0.5rem;">
@@ -1827,6 +1834,23 @@
                     </button>
                 </div>
 
+                <p style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 600;">
+                    Updating
+                </p>
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    From the directory where you cloned the repository, pull the latest changes. Symlinks will automatically point to the updated files:
+                </p>
+
+                <div style="position: relative; margin-bottom: 1.5rem;">
+                    <div class="code-block" style="padding-right: 5rem;">cd ai-helpers && git pull</div>
+                    <button class="copy-button" onclick="copyToClipboard('cd ai-helpers && git pull', event)" title="Copy to clipboard">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5.75 4.75H10.25V1.75H5.75V4.75ZM5.75 4.75H2.75V14.25H10.25V11.25M5.75 4.75V7.75H13.25V14.25H10.25V11.25M10.25 11.25H13.25V7.75H5.75V4.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="copy-button-text">Copy</span>
+                    </button>
+                </div>
+
                 <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
 
                 <h3 style="margin-bottom: 1rem; color: #FF6B35; display: flex; align-items: center; gap: 0.5rem;">
@@ -1865,6 +1889,23 @@
                 <div style="position: relative; margin-bottom: 1.5rem;">
                     <div class="code-block" style="padding-right: 5rem;">ln -sf $(pwd)/helpers/skills/* ~/.config/opencode/skills/ && ln -sf $(pwd)/helpers/commands/* ~/.config/opencode/commands/</div>
                     <button class="copy-button" onclick="copyToClipboard('ln -sf $(pwd)/helpers/skills/* ~/.config/opencode/skills/ && ln -sf $(pwd)/helpers/commands/* ~/.config/opencode/commands/', event)" title="Copy to clipboard">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5.75 4.75H10.25V1.75H5.75V4.75ZM5.75 4.75H2.75V14.25H10.25V11.25M5.75 4.75V7.75H13.25V14.25H10.25V11.25M10.25 11.25H13.25V7.75H5.75V4.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="copy-button-text">Copy</span>
+                    </button>
+                </div>
+
+                <p style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 600;">
+                    Updating
+                </p>
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    From the directory where you cloned the repository, pull the latest changes. Symlinks will automatically point to the updated files:
+                </p>
+
+                <div style="position: relative; margin-bottom: 1.5rem;">
+                    <div class="code-block" style="padding-right: 5rem;">cd ai-helpers && git pull</div>
+                    <button class="copy-button" onclick="copyToClipboard('cd ai-helpers && git pull', event)" title="Copy to clipboard">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M5.75 4.75H10.25V1.75H5.75V4.75ZM5.75 4.75H2.75V14.25H10.25V11.25M5.75 4.75V7.75H13.25V14.25H10.25V11.25M10.25 11.25H13.25V7.75H5.75V4.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
