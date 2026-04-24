@@ -633,6 +633,8 @@ def _gitlab_post(args: argparse.Namespace) -> None:
             _step(f"Found previous review (sha: {prev_sha[:8]}...), filtering unchanged code...")
             data = filter_already_reviewed(data, prev_sha, head_sha)
 
+        _gitlab_delete_previous_discussions(session, api_base, verbose=verbose)
+
         inline = data.get("inline_comments", [])
         posted = 0
         failed = 0
@@ -662,11 +664,6 @@ def _gitlab_post(args: argparse.Namespace) -> None:
             _success(f"Posted {posted}/{len(inline)} inline comments ({failed} failed)")
         else:
             _step("No inline comments to post")
-
-        if failed == 0:
-            _gitlab_delete_previous_discussions(session, api_base, verbose=verbose)
-        else:
-            _warning("Skipping deletion of previous discussions due to posting failures")
 
         summary_body = _gitlab_build_summary_body(data, review_marker, job_name, job_url)
         if _gitlab_upsert_summary_note(session, api_base, summary_body, verbose=verbose):
