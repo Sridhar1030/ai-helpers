@@ -9,7 +9,7 @@ One-time setup for the [Google Workspace CLI](https://github.com/googleworkspace
 
 Before walking through the steps, ask the user for the following:
 
-1. **Install method** -- Homebrew, npm, Cargo, Nix, or pre-built binary?
+1. **Install method** -- Homebrew, npm, Cargo, or pre-built binary?
 2. **GCP project name** -- What name for their Google Cloud project? (e.g. `username-gws`)
 3. **Google email** -- Their Google account email (used for OAuth consent support email and test user)
 4. **App name** -- What to call the OAuth app on the consent screen? (e.g. `gws CLI`)
@@ -20,7 +20,7 @@ Use these answers throughout the remaining steps. If the user doesn't have a pre
 ## Prerequisites
 
 - A Google account with Workspace access
-- One of: Homebrew, Node.js 18+, Rust toolchain, or Nix
+- One of: Homebrew, Node.js 18+, or Rust toolchain
 
 ## Step 1: Install
 
@@ -31,7 +31,6 @@ Use the install method the user chose:
 | Homebrew (macOS/Linux) | `brew install googleworkspace-cli` |
 | npm | `npm install -g @googleworkspace/cli` |
 | Cargo (from source) | `cargo install --git https://github.com/googleworkspace/cli --locked` |
-| Nix | `nix run github:googleworkspace/cli` |
 | Pre-built binary | Download from [GitHub Releases](https://github.com/googleworkspace/cli/releases) |
 
 Verify: `gws --help`
