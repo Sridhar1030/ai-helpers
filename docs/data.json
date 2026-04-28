@@ -11,8 +11,14 @@
     "pytorch": {
       "name": "PyTorch"
     },
+    "documentation": {
+      "name": "Documentation"
+    },
     "vllm": {
       "name": "vLLM"
+    },
+    "jira management": {
+      "name": "Jira Management"
     }
   },
   "tools": {
@@ -69,11 +75,35 @@
     ],
     "skills": [
       {
+        "name": "acli-setup-check",
+        "description": "Verify acli installation and authentication. Checks if acli is installed, properly configured, and can access Jira. Use when troubleshooting acli issues or setting up acli for the first time.",
+        "category": "jira management",
+        "file_path": "helpers/skills/acli-setup-check/SKILL.md",
+        "id": "acli-setup-check",
+        "allowed_tools": "Bash"
+      },
+      {
+        "name": "adr-review",
+        "description": "Review an Architectural Decision Record (ADR) using a team of six specialist reviewer subagents and produce a consolidated report as both PDF and PPTX slide deck. Use this skill whenever the user asks to review, critique, audit, or get feedback on an ADR, architecture decision, design doc, or RFC — whether the input is a Markdown file, a .docx document, or pasted text. Trigger even if the user does not explicitly say \"ADR\"; phrases like \"review this architecture decision\", \"critique this design doc\", or \"run the reviewer panel on this\" should also invoke this skill.",
+        "category": "general",
+        "file_path": "helpers/skills/adr-review/SKILL.md",
+        "id": "adr-review",
+        "allowed_tools": ""
+      },
+      {
         "name": "ai-bug-fix-triage",
         "description": "Triage JIRA bugs against repository code to classify AI fixability. Use when reviewing a backlog of bugs to determine which ones an AI agent can fix.",
         "category": "general",
         "file_path": "helpers/skills/ai-bug-fix-triage/SKILL.md",
         "id": "ai-bug-fix-triage",
+        "allowed_tools": "Bash Read Grep Glob"
+      },
+      {
+        "name": "code-review",
+        "description": "Perform AI code review on a GitLab MR or local branch. Reviews all commits since the base branch, produces structured JSON feedback with inline comments, and posts results to GitLab (CI) or displays them locally. Use when asked to review code changes, do a code review, or run ai-review.\n",
+        "category": "general",
+        "file_path": "helpers/skills/code-review/SKILL.md",
+        "id": "code-review",
         "allowed_tools": "Bash Read Grep Glob"
       },
       {
@@ -83,6 +113,70 @@
         "file_path": "helpers/skills/coderabbit-review/SKILL.md",
         "id": "coderabbit-review",
         "allowed_tools": "Bash(gh pr view:*) Bash(gh repo view:*) Bash(git remote:*) Bash(git branch:*) Bash(gh pr list:*) Bash(gh api:*) Bash(curl:*) Bash(sha256sum:*) Read Glob Grep Edit AskUserQuestion"
+      },
+      {
+        "name": "doc-gap",
+        "description": "Analyze context sufficiency for documentation generation. Reads workspace/context-package.json and produces workspace/gap-report.json with severity-rated gaps and a proceed/gather-more/stop recommendation.\n",
+        "category": "documentation",
+        "file_path": "helpers/skills/doc-gap/SKILL.md",
+        "id": "doc-gap",
+        "allowed_tools": ""
+      },
+      {
+        "name": "doc-gather",
+        "description": "Gather context for a Jira ticket or PR. Resolves ticket metadata, clones relevant repos, collects candidate files, runs filtering pipeline, and produces workspace/context-package.json.\n",
+        "category": "documentation",
+        "file_path": "helpers/skills/doc-gather/SKILL.md",
+        "id": "doc-gather",
+        "allowed_tools": ""
+      },
+      {
+        "name": "doc-generate",
+        "description": "Generate AsciiDoc documentation modules from gathered context. Reads context package and gap report, generates content, then self-validates with iterative correction (up to 3 retries). Produces generated files and workspace/generation-report.json.\n",
+        "category": "documentation",
+        "file_path": "helpers/skills/doc-generate/SKILL.md",
+        "id": "doc-generate",
+        "allowed_tools": ""
+      },
+      {
+        "name": "doc-pipeline",
+        "description": "Full pipeline orchestrator. Sequences doc-gather, doc-gap, doc-validate, doc-review, and doc-generate skills based on the requested pipeline mode.\n",
+        "category": "documentation",
+        "file_path": "helpers/skills/doc-pipeline/SKILL.md",
+        "id": "doc-pipeline",
+        "allowed_tools": ""
+      },
+      {
+        "name": "doc-plan",
+        "description": "STRAT-level documentation planning. Traverses a strategic initiative's child epics and stories to produce a systematic doc plan identifying what documentation is needed, what type, and at what priority.\n",
+        "category": "documentation",
+        "file_path": "helpers/skills/doc-plan/SKILL.md",
+        "id": "doc-plan",
+        "allowed_tools": ""
+      },
+      {
+        "name": "doc-post",
+        "description": "Post validation and review findings as comments on a GitHub PR or GitLab MR. Reads workspace findings files and formats them as inline or summary comments.\n",
+        "category": "documentation",
+        "file_path": "helpers/skills/doc-post/SKILL.md",
+        "id": "doc-post",
+        "allowed_tools": ""
+      },
+      {
+        "name": "doc-review",
+        "description": "Adversarial review of AsciiDoc documentation against context sources. Checks factual accuracy, completeness, consistency, and hallucination. Produces workspace/review-findings.json.\n",
+        "category": "documentation",
+        "file_path": "helpers/skills/doc-review/SKILL.md",
+        "id": "doc-review",
+        "allowed_tools": ""
+      },
+      {
+        "name": "doc-validate",
+        "description": "Validate AsciiDoc documentation for technical accuracy using Extract-Identify-Validate pattern. Runs Vale, asciidoctor, lychee, YAML syntax checks, and LLM-powered cross-reference validation. Produces workspace/validation-findings.json.\n",
+        "category": "documentation",
+        "file_path": "helpers/skills/doc-validate/SKILL.md",
+        "id": "doc-validate",
+        "allowed_tools": ""
       },
       {
         "name": "gist-upload",
@@ -106,12 +200,20 @@
         "category": "general",
         "file_path": "helpers/skills/gitlab-pipeline-debugger/SKILL.md",
         "id": "gitlab-pipeline-debugger",
-        "allowed_tools": "Bash Read"
+        "allowed_tools": "Bash(glab:*)"
+      },
+      {
+        "name": "google-workspace",
+        "description": "Fetch and query data from Google Workspace using the gws CLI — Gmail, Calendar, Docs, Sheets, Slides, and Drive. Use this skill whenever the user mentions email, inbox, messages, calendar, meetings, schedule, agenda, Google Docs, spreadsheets, presentations, or Drive files. Trigger on phrases like \"check my email\", \"what meetings do I have\", \"read this doc\", \"open this spreadsheet\", \"find files in Drive\", or any Google URL (docs.google.com, drive.google.com).\n",
+        "category": "general",
+        "file_path": "helpers/skills/google-workspace/SKILL.md",
+        "id": "google-workspace",
+        "allowed_tools": "Bash"
       },
       {
         "name": "jira-activity",
         "description": "Summarize Jira ticket activity, including child tickets, to detect stale tickets in the backlog. Use when user asks to review one or more Jira tickets to determine if they are being worked on.",
-        "category": "general",
+        "category": "jira management",
         "file_path": "helpers/skills/jira-activity/SKILL.md",
         "id": "jira-activity",
         "allowed_tools": "Bash"
@@ -133,11 +235,59 @@
         "allowed_tools": "Bash, GitHub MCP, Atlassian MCP"
       },
       {
+        "name": "jira-status-summary",
+        "description": "Update the Status Summary and Color Status fields on AIPCC Feature and Initiative tickets. Fetches child ticket activity via the jira-activity skill, generates a brief summary and sets the red/yellow/green color status. Use when asked to update the status summary for a Jira ticket.\n",
+        "category": "aipcc",
+        "file_path": "helpers/skills/jira-status-summary/SKILL.md",
+        "id": "jira-status-summary",
+        "allowed_tools": "Bash"
+      },
+      {
         "name": "jira-upload-chat-log",
         "description": "Export and upload the current chat conversation as a markdown file attachment to a JIRA ticket for later review and documentation.",
-        "category": "general",
+        "category": "jira management",
         "file_path": "helpers/skills/jira-upload-chat-log/SKILL.md",
         "id": "jira-upload-chat-log",
+        "allowed_tools": "Skill, AskUserQuestion"
+      },
+      {
+        "name": "jira-workitem-attach",
+        "description": "Upload file attachments to Jira tickets. Verifies file exists and uploads via Jira API. Use when user wants to attach files to tickets.",
+        "category": "jira management",
+        "file_path": "helpers/skills/jira-workitem-attach/SKILL.md",
+        "id": "jira-workitem-attach",
+        "allowed_tools": "Bash, Skill"
+      },
+      {
+        "name": "jira-workitem-comment",
+        "description": "Add comments to Jira tickets using simple text or Jira markup (ADF JSON). Supports rich formatting with code blocks, lists, mentions, and links. Use when user wants to comment on a ticket.",
+        "category": "jira management",
+        "file_path": "helpers/skills/jira-workitem-comment/SKILL.md",
+        "id": "jira-workitem-comment",
+        "allowed_tools": "Bash, AskUserQuestion, Skill"
+      },
+      {
+        "name": "jira-workitem-search",
+        "description": "Search Jira tickets using JQL queries. Provides common query templates and flexible output formats. Use when user needs to find or filter tickets.",
+        "category": "jira management",
+        "file_path": "helpers/skills/jira-workitem-search/SKILL.md",
+        "id": "jira-workitem-search",
+        "allowed_tools": "Bash, AskUserQuestion, Skill"
+      },
+      {
+        "name": "jira-workitem-view",
+        "description": "Retrieve and display full details of a Jira ticket. Fetches all fields and formats them for conversation context. Use when user needs ticket information or wants to examine a ticket.",
+        "category": "jira management",
+        "file_path": "helpers/skills/jira-workitem-view/SKILL.md",
+        "id": "jira-workitem-view",
+        "allowed_tools": "Bash, Skill"
+      },
+      {
+        "name": "learning-mode",
+        "description": "Hands-on mentoring: the agent scaffolds work, then pauses so the engineer writes small, meaningful code (roughly 5–15 lines) for practice. Use when the user enables learning mode, asks for guided mentoring, hands-on practice, collaborative coding, or teaching while building a feature.",
+        "category": "general",
+        "file_path": "helpers/skills/learning-mode/SKILL.md",
+        "id": "learning-mode",
         "allowed_tools": ""
       },
       {
@@ -147,6 +297,14 @@
         "file_path": "helpers/skills/oci-cve-checker/SKILL.md",
         "id": "oci-cve-checker",
         "allowed_tools": "Bash Read"
+      },
+      {
+        "name": "pr-jira-linker",
+        "description": "Find and link Jira issues to PRs/MRs that are missing Jira references. Supports single PR/MR linking and batch audit of configured repos. Use when the user mentions \"link PR to Jira\", \"scan PRs\", \"PR audit\", \"MR missing Jira\", \"link merge request\", or wants to connect code changes to Jira for traceability.",
+        "category": "general",
+        "file_path": "helpers/skills/pr-jira-linker/SKILL.md",
+        "id": "pr-jira-linker",
+        "allowed_tools": "Read Grep Glob WebFetch Bash user-github plugin-gitlab-GitLab user-mcp-atlassian"
       },
       {
         "name": "python-full-deps",
@@ -197,6 +355,14 @@
         "allowed_tools": "Bash Skill"
       },
       {
+        "name": "python-packaging-security-audit",
+        "description": "Evaluate the security of a Python package repository with static code analysis and a scan of git history for suspicious commits, then triaging findings to produce an actionable security report with a risk rating.",
+        "category": "general",
+        "file_path": "helpers/skills/python-packaging-security-audit/SKILL.md",
+        "id": "python-packaging-security-audit",
+        "allowed_tools": "Bash Read Grep Skill"
+      },
+      {
         "name": "python-packaging-source-finder",
         "description": "Locate source code repositories for Python packages by analyzing PyPI metadata, project URLs, and code hosting platforms like GitHub, GitLab, and Bitbucket. Provides deterministic results with confidence levels.",
         "category": "general",
@@ -213,12 +379,68 @@
         "allowed_tools": "Bash Read Grep Glob"
       },
       {
+        "name": "triage-bug-readiness",
+        "description": "Assess a Jira bug ticket for AI autofix readiness. Produces a structured JSON verdict (ready/needs_info/not_fixable) based on a three-gate rubric. Designed for CI pipeline use with the jira-triage orchestrator.",
+        "category": "general",
+        "file_path": "helpers/skills/triage-bug-readiness/SKILL.md",
+        "id": "triage-bug-readiness",
+        "allowed_tools": "Read Grep Glob Write"
+      },
+      {
         "name": "unit-test-project-conformant",
         "description": "Guides the agent to write unit tests that strictly conform to the project's existing testing structure, patterns, and style by learning from similar tests before writing anything new.",
         "category": "general",
         "file_path": "helpers/skills/unit-test-project-conformant/SKILL.md",
         "id": "unit-test-project-conformant",
         "allowed_tools": ""
+      },
+      {
+        "name": "vllm-backport-check-backported",
+        "description": "Check which candidate PRs have already been cherry-picked into the downstream branch. Use after classify-and-filter to mark already_backported on each PR. Fully deterministic — compares merge SHAs and PR titles.\n",
+        "category": "vllm",
+        "file_path": "helpers/skills/vllm-backport-check-backported/SKILL.md",
+        "id": "vllm-backport-check-backported",
+        "allowed_tools": "Bash Read"
+      },
+      {
+        "name": "vllm-backport-cherry-pick",
+        "description": "Auto cherry-pick backport candidates and create a draft PR on the downstream repo. Use after scoring to attempt clean cherry-picks for ai-fixable candidates. The agent must still do semantic validation on the result.\n",
+        "category": "vllm",
+        "file_path": "helpers/skills/vllm-backport-cherry-pick/SKILL.md",
+        "id": "vllm-backport-cherry-pick",
+        "allowed_tools": "Bash Read"
+      },
+      {
+        "name": "vllm-backport-classify",
+        "description": "Classify bugfix PRs by type (runtime_bug, platform_specific, unclear, not_bugfix) and filter by file existence at a release tag. Use after fetching raw PRs to produce a filtered candidate list. PRs marked \"unclear\" need agent review.\n",
+        "category": "vllm",
+        "file_path": "helpers/skills/vllm-backport-classify/SKILL.md",
+        "id": "vllm-backport-classify",
+        "allowed_tools": "Bash Read"
+      },
+      {
+        "name": "vllm-backport-fetch-prs",
+        "description": "Fetch merged bugfix PRs from vllm-project/vllm within a date window. Use when starting a backport triage run to get raw PR data from GitHub. Outputs a JSON array of PR objects with labels, authors, and merge commits.\n",
+        "category": "vllm",
+        "file_path": "helpers/skills/vllm-backport-fetch-prs/SKILL.md",
+        "id": "vllm-backport-fetch-prs",
+        "allowed_tools": "Bash Read"
+      },
+      {
+        "name": "vllm-backport-push-report",
+        "description": "Push a triage report to GitHub under a timestamped directory in reports/. Use after the agent writes the report markdown and has ranked.json ready. Outputs the report URL to stdout.\n",
+        "category": "vllm",
+        "file_path": "helpers/skills/vllm-backport-push-report/SKILL.md",
+        "id": "vllm-backport-push-report",
+        "allowed_tools": "Bash"
+      },
+      {
+        "name": "vllm-backport-score-rank",
+        "description": "Score and rank backport candidates using a composite formula based on verdict, severity, scope, risk, and self-containedness. Use after the agent completes semantic analysis to produce a prioritized ranked list.\n",
+        "category": "vllm",
+        "file_path": "helpers/skills/vllm-backport-score-rank/SKILL.md",
+        "id": "vllm-backport-score-rank",
+        "allowed_tools": "Bash Read"
       },
       {
         "name": "vllm-compare-reqs",
